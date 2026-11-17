@@ -1860,6 +1860,9 @@ if('IntersectionObserver' in window){
   const tabs=document.querySelectorAll('.tab');
   const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){tabs.forEach(t=>t.setAttribute('aria-current',String(t.dataset.go===en.target.id)))}})},{rootMargin:'-35% 0px -55% 0px'});
   io.observe($('#s1')); io.observe($('#sr')); io.observe($('#s2')); io.observe($('#s3')); io.observe($('#s4')); io.observe($('#s5')); io.observe($('#s6')); io.observe($('#s7')); io.observe($('#s8')); io.observe($('#s9')); io.observe($('#s10')); io.observe($('#s11'));
+  window.addEventListener('scroll',()=>{
+    if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4) tabs.forEach(t=>t.setAttribute('aria-current',String(t.dataset.go==='s11')));
+  },{passive:true});
 }
 
 $('#skipAll').addEventListener('click',()=>{ if(!S.done) submit(); else scrollToEl($('#sr')) });
