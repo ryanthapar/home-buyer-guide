@@ -181,6 +181,23 @@ tr.base td{color:var(--ink-2);background:var(--surface-2)}
 .stg .sd{font-size:14px;color:var(--ink-2)}
 .stg .sb{padding:0 18px 18px 62px}
 @media (max-width:560px){.stg .sb{padding-left:18px}}
+.hsteps{display:flex;overflow-x:auto;scroll-snap-type:x proximity;padding:6px 2px 12px;margin-top:8px}
+.hs{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;flex:1 0 170px;min-width:170px;scroll-snap-align:start;background:none;border:0;padding:0 14px 0 0;text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
+.hs .bar{display:flex;align-items:center;margin-bottom:10px}
+.hs .sn{flex:none;width:36px;height:36px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;font:700 14px var(--mono)}
+.hs .ln{flex:1;height:2px;background:var(--line);margin-left:10px}
+.hs:last-child .ln{display:none}
+.hs b{display:block;font-size:15px;line-height:1.25}
+.hs .sd{display:block;font-size:13px;color:var(--ink-2);margin-top:3px;line-height:1.35}
+.hs:hover .sn{outline:2px solid var(--accent-soft);outline-offset:2px}
+.hs[aria-selected="true"] .sn{background:var(--accent);color:var(--on-accent)}
+.hs[aria-selected="true"] b{color:var(--accent)}
+.hs.done .sn{background:var(--good);color:#fff;font-size:0}
+.hs.done .sn::after{content:"\2713";font-size:17px}
+.stp{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,3vw,28px);margin-top:4px}
+.stp h3{font-size:22px;margin:0 0 2px}
+.stp>.sd{font-size:14px;color:var(--ink-2);margin:0 0 14px}
+.stnav{display:flex;justify-content:space-between;gap:8px;margin-top:18px;flex-wrap:wrap}
 @media (max-width:640px){.bgrid{grid-template-columns:1fr!important}}
 .rows{display:grid}
 .rows div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
@@ -850,7 +867,8 @@ function buildMap(){
   const ck=ckLoad();
   const done=i=>{const id='ck'+(400+i);return `<label class="fine" for="${id}" style="display:flex;gap:8px;align-items:center;margin:14px 0 0"><input type="checkbox" id="${id}" data-ck="${id}" data-mst="${i}" ${ck[id]?'checked':''}> I have done this</label>`};
   const out=t=>`<p style="margin:0 0 10px;padding:8px 12px;border-left:3px solid var(--accent);background:var(--accent-soft)"><b>What you leave with:</b> ${t}</p>`;
-  const stage=(i,t,sub,body,o)=>`<details class="stg" data-i="${i}"${i===1?' open':''}><summary><span class="sn">${i}</span><span><b>${t}</b><br><span class="sd">${sub}</span></span></summary><div class="sb">${out(o)}${body}${done(i)}</div></details>`;
+  const STG=[];
+  const stage=(i,t,sub,body,o)=>{STG.push([i,t,sub]);return `<section class="stp" role="tabpanel" id="stp${i}" aria-labelledby="hs${i}" tabindex="-1"${i===1?'':' hidden'}><h3>Stage ${i}: ${t}</h3><p class="sd">${sub}</p>${out(o)}${body}${done(i)}<div class="stnav"><span>${i>1?`<button type="button" class="btn ghost small" data-hgo="${i-1}">Previous stage</button>`:''}</span><span>${i<6?`<button type="button" class="btn small" data-hgo="${i+1}">Next stage</button>`:''}</span></div></section>`};
   const s1=stage(1,'Choose your team','Do this before you tour any homes',
     ul(['<b>Real estate agent:</b> market knowledge, searching, negotiating and offer strategy. Before they represent you, confirm how they are paid and read what you are asked to sign.','<b>Mortgage broker or bank mortgage specialist:</b> pre-approval, rate shopping and choosing a product. A broker can compare several lenders at once.','<b>Real estate lawyer:</b> reviews the agreement and handles title and the money on closing day. Hire one before you make an offer or, at the very least, before your conditions expire.','<b>Home inspector:</b> an independent look at the condition of a resale home. On a new build, the equivalent is the pre-delivery inspection.'])+go('s9','The agreement you sign with an agent (part 11)'),
     'four names you trust, and a clear understanding of what the agent will be paid.');
@@ -869,9 +887,35 @@ function buildMap(){
   const s6=stage(6,'Close and move in','The last few weeks',
     ul(['Your lawyer registers the transfer, your mortgage funds, and you get the keys.','Plan for closing-day cash: your down payment, land transfer tax net of any refund, legal fees and adjustments.','Have home insurance in place before closing, because your lender will ask for proof.','Arrange utilities and a change of address, and book the movers.'])+go('s8','Between offer and closing (part 10)'),
     'the keys, and title in your name.');
-  $('#mapStages').innerHTML=s1+s2+s3+s4+s5+s6;
+  const nav=`<div class="hsteps" role="tablist" aria-label="Home buying stages">${STG.map(g=>`<button type="button" role="tab" class="hs" id="hs${g[0]}" data-hs="${g[0]}" aria-selected="${g[0]===1}" aria-controls="stp${g[0]}" tabindex="${g[0]===1?0:-1}"><span class="bar"><span class="sn">${g[0]}</span><span class="ln"></span></span><b>${g[1]}</b><span class="sd">${g[2]}</span></button>`).join('')}</div>`;
+  $('#mapStages').innerHTML=nav+s1+s2+s3+s4+s5+s6;
   updateMap();
 }
+function showStage(i,focusTab){
+  if(i<1||i>6) return;
+  for(let k=1;k<=6;k++){
+    const t=$('#hs'+k), p=$('#stp'+k); if(!t||!p) continue;
+    t.setAttribute('aria-selected',String(k===i)); t.tabIndex=k===i?0:-1; p.hidden=k!==i;
+  }
+  const t=$('#hs'+i); if(t){t.scrollIntoView({block:'nearest',inline:'center',behavior:reduce?'auto':'smooth'}); if(focusTab) t.focus({preventScroll:true})}
+}
+function markDone(){
+  const ck=ckLoad();
+  for(let k=1;k<=6;k++){const t=$('#hs'+k); if(t) t.classList.toggle('done',!!ck['ck'+(400+k)])}
+}
+$('#sr').addEventListener('click',e=>{
+  const t=e.target.closest('[data-hs]'), g=e.target.closest('[data-hgo]');
+  if(t) showStage(+t.dataset.hs,false);
+  else if(g){showStage(+g.dataset.hgo,false); const p=$('#stp'+g.dataset.hgo), h=$('#hs'+g.dataset.hgo); if(h&&h.getBoundingClientRect().top<0) h.scrollIntoView({block:'start',behavior:reduce?'auto':'smooth'})}
+});
+$('#sr').addEventListener('keydown',e=>{
+  const t=e.target.closest&&e.target.closest('[data-hs]'); if(!t) return;
+  const i=+t.dataset.hs;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();showStage(Math.min(6,i+1),true)}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();showStage(Math.max(1,i-1),true)}
+  else if(e.key==='Home'){e.preventDefault();showStage(1,true)}
+  else if(e.key==='End'){e.preventDefault();showStage(6,true)}
+});
 function updateMap(){
   const n=mapNums(); if(!n||!$('#mapStages')) return;
   const sv=$('#mapSave'), py=$('#mapPay');
@@ -885,6 +929,7 @@ function nextStep(){
   const ck=ckLoad(); const names=['Choose your team','Assess your readiness','Build a budget','Get pre-approved','Search, offer and negotiate','Close and move in'];
   let i=1; while(i<=6&&ck['ck'+(400+i)]) i++;
   el.innerHTML=i>6?'<b>Every stage is ticked.</b> Enjoy the new home.':`<b>Your next step:</b> stage ${i}, ${names[i-1]}.`;
+  markDone();
 }
 $('#sr').addEventListener('change',e=>{const t=e.target; if(t&&t.matches&&t.matches('[data-ck]')){const o=ckLoad();o[t.dataset.ck]=t.checked;ckSave(o);nextStep()}});
 
