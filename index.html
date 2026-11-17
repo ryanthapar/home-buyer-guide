@@ -417,8 +417,8 @@ summary{cursor:pointer;font-weight:600;font-size:15px}
     </header>
     <!-- Owner: add the source and period for the rankings below (for example "RE/MAX Hall of Fame, 2025" or a board report), and add team member names, photos and bios inside .team-bios when ready. -->
     <ul class="stats" aria-label="Our track record">
-      <li><span class="big">$1B+</span><span class="lbl">in sales volume</span></li>
-      <li><span class="big">1,700+</span><span class="lbl">homes sold and bought</span></li>
+      <li><span class="big" id="stVol">$883M</span><span class="lbl">in sales volume since 2011</span></li>
+      <li><span class="big" id="stHomes">1,060</span><span class="lbl">homes sold and bought since 2011</span></li>
       <li><span class="big">#1</span><span class="lbl">team in Etobicoke</span></li>
       <li><span class="big">#15</span><span class="lbl">team in Toronto</span></li>
       <li><span class="big">Top 100</span><span class="lbl">team in the GTA</span></li>
@@ -436,6 +436,17 @@ summary{cursor:pointer;font-weight:600;font-size:15px}
       <iframe title="Map of homes we have sold and bought" src="our-sales.html?embed=1" loading="lazy" style="display:block;width:100%;height:640px;border:0;border-top:1px solid var(--line);background:var(--surface-2)"></iframe>
     </div>
     <div class="team-bios"></div>
+    <script>
+    /* Keep the first two stats in step with the map data. The numbers in the HTML are the fallback. */
+    fetch('data/sales.json').then(function(r){return r.ok?r.json():null}).then(function(d){
+      if(!d||!d.records||!d.records.length) return;
+      var n=d.records.length, v=d.records.reduce(function(s,r){return s+(+r.price||0)},0);
+      var since=Math.min.apply(null,d.records.map(function(r){return r.year}));
+      var vol=document.getElementById('stVol'), hm=document.getElementById('stHomes');
+      if(vol){vol.textContent=v>=1e9?'$'+(v/1e9).toFixed(2)+'B':'$'+Math.round(v/1e6).toLocaleString('en-CA')+'M'; vol.nextElementSibling.textContent='in sales volume since '+since}
+      if(hm){hm.textContent=n.toLocaleString('en-CA'); hm.nextElementSibling.textContent='homes sold and bought since '+since}
+    }).catch(function(){});
+    </script>
   </section>
 
   <div class="card" id="foot" style="margin-top:48px"></div>

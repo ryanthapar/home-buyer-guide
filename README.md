@@ -27,7 +27,7 @@ The map reads `data/sales.json`, which holds the coordinates already worked out 
 2. Run `python3 tools/extract_sales.py path/to/thapar_sales_map.html`. It rewrites `data/sales.json` and prints the record count and year range.
 3. Commit and push.
 
-`data/sales.json` includes each sale's street address, price, MLS number and the other side's agent. That is shown in the map's popups and list. If you would rather not publish those, remove the fields from the file and the popup before pushing.
+`data/sales.json` includes each sale's street address, price and MLS number, shown in the map's popups and list. The other side's agent name is dropped by the script and never published. If you would rather not publish the rest, remove those fields from the file and the popup before pushing.
 
 ## Publish
 Repo **Settings → Pages → Deploy from a branch**, pick the branch and `/ (root)`.

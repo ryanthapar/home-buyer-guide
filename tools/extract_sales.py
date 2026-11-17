@@ -12,6 +12,9 @@ m = re.search(r"const D\s*=\s*(\[.*?\]);\s*\n", src, re.S)
 if not m:
     sys.exit("Could not find `const D=[...]` in that file.")
 records = json.loads(m.group(1))
+# Other agents' names are never published.
+for r in records:
+    r.pop("other", None)
 need = {"lat", "lng", "year", "side", "addr", "city", "type", "price", "date", "id"}
 bad = [r.get("id") for r in records if not need <= set(r)]
 if bad:
