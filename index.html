@@ -197,6 +197,11 @@ tr.base td{color:var(--ink-2);background:var(--surface-2)}
 .stp{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,3vw,28px);margin-top:4px}
 .stp h3{font-size:22px;margin:0 0 2px}
 .stp>.sd{font-size:14px;color:var(--ink-2);margin:0 0 14px}
+.stats{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:12px}
+.stats li{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 18px;display:flex;flex-direction:column;gap:4px}
+.stats .big{font:700 clamp(30px,4.4vw,44px)/1.05 var(--display);letter-spacing:-.02em;color:var(--accent)}
+.stats .lbl{font-size:15px;color:var(--ink-2)}
+@media (max-width:420px){.stats li:last-child:nth-child(odd){grid-column:1/-1}}
 .stnav{display:flex;justify-content:space-between;gap:8px;margin-top:18px;flex-wrap:wrap}
 @media (max-width:640px){.bgrid{grid-template-columns:1fr!important}}
 .rows{display:grid}
@@ -243,6 +248,7 @@ summary{cursor:pointer;font-weight:600;font-size:15px}
       <button class="tab" type="button" data-go="s7" id="tab7">9 · Making an offer</button>
       <button class="tab" type="button" data-go="s8" id="tab8">10 · Offer to closing</button>
       <button class="tab" type="button" data-go="s9" id="tab9">11 · Buyer agreement</button>
+      <button class="tab" type="button" data-go="s11" id="tab11">12 · Who we are</button>
     </nav>
   </div>
 
@@ -398,6 +404,32 @@ summary{cursor:pointer;font-weight:600;font-size:15px}
     <div id="braTop"></div>
     <div id="braView"></div>
     <div id="braEnd" style="margin-top:16px"></div>
+  </section>
+
+  <section id="s11" class="part" aria-labelledby="s11h">
+    <header class="sh">
+      <div>
+        <p class="eyebrow">Part 12</p>
+        <h2 id="s11h" tabindex="-1">Who we are</h2>
+        <p>The Thapar Team helps buyers and sellers across Etobicoke, Toronto and the GTA. We built this guide so you understand the process, the numbers and the rules before you make a decision.</p>
+      </div>
+      <button type="button" class="btn ghost small" data-skip="foot">Skip to the end</button>
+    </header>
+    <!-- Owner: add the source and period for the rankings below (for example "RE/MAX Hall of Fame, 2025" or a board report), and add team member names, photos and bios inside .team-bios when ready. -->
+    <ul class="stats" aria-label="Our track record">
+      <li><span class="big">$1B+</span><span class="lbl">in sales volume</span></li>
+      <li><span class="big">1,700+</span><span class="lbl">homes sold and bought</span></li>
+      <li><span class="big">#1</span><span class="lbl">team in Etobicoke</span></li>
+      <li><span class="big">#15</span><span class="lbl">team in Toronto</span></li>
+      <li><span class="big">Top 100</span><span class="lbl">team in the GTA</span></li>
+    </ul>
+    <div class="pg">
+      <article class="pc"><div class="pt"><h4>What we do</h4></div><p class="pv">Buyers and sellers, start to finish</p>
+        <p>We work with first-time buyers, move-up buyers, investors and sellers. We find the home, negotiate the offer and stay with you through to closing day.</p></article>
+      <article class="pc"><div class="pt"><h4>How we work</h4></div><p class="pv">Plain answers, real numbers</p>
+        <p>You should know what a home really costs, which programs you qualify for and what you are signing before you commit. That is why this guide exists, and the same approach is how we work with clients.</p></article>
+    </div>
+    <div class="team-bios"></div>
   </section>
 
   <div class="card" id="foot" style="margin-top:48px"></div>
@@ -1822,11 +1854,12 @@ function submit(){
 document.querySelector('.tabs').addEventListener('click',e=>{
   const t=e.target.closest('[data-go]'); if(!t||t.disabled) return;
   scrollToEl($('#'+t.dataset.go));
+  document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-current',String(x===t)));
 });
 if('IntersectionObserver' in window){
   const tabs=document.querySelectorAll('.tab');
   const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){tabs.forEach(t=>t.setAttribute('aria-current',String(t.dataset.go===en.target.id)))}})},{rootMargin:'-35% 0px -55% 0px'});
-  io.observe($('#s1')); io.observe($('#sr')); io.observe($('#s2')); io.observe($('#s3')); io.observe($('#s4')); io.observe($('#s5')); io.observe($('#s6')); io.observe($('#s7')); io.observe($('#s8')); io.observe($('#s9')); io.observe($('#s10'));
+  io.observe($('#s1')); io.observe($('#sr')); io.observe($('#s2')); io.observe($('#s3')); io.observe($('#s4')); io.observe($('#s5')); io.observe($('#s6')); io.observe($('#s7')); io.observe($('#s8')); io.observe($('#s9')); io.observe($('#s10')); io.observe($('#s11'));
 }
 
 $('#skipAll').addEventListener('click',()=>{ if(!S.done) submit(); else scrollToEl($('#sr')) });
