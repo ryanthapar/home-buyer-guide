@@ -232,7 +232,7 @@ summary{cursor:pointer;font-weight:600;font-size:15px}
   <section id="s1" aria-labelledby="introh">
     <div class="intro">
       <h1 id="introh">Start with where you stand.</h1>
-      <p>Seven quick questions. Skip any you like, or skip them all. Your answers tailor the sections that follow.</p>
+      <p>Nine quick questions. Skip any you like, or skip them all. Your answers tailor the sections that follow.</p>
       <p style="margin-top:16px"><button type="button" class="btn ghost small" id="skipAll">Skip the questions</button></p>
     </div>
     <div class="intake">
@@ -501,6 +501,25 @@ function insCompare(S,M,o){
 }
 //#MODEL-END
 
+/* ---------- Pre-approval estimate ---------- */
+const HEAT=150, QUAL_FLOOR=5.25, GDS_MAX=0.39, TDS_MAX=0.44;
+function preEst(inc,debts,down,fthb,inv,rate){
+  if(!(inc>0)) return null;
+  const q=Math.max(rate+2,QUAL_FLOOR), am=fthb==='yes'?30:25, n=am*12;
+  const i=Math.pow(1+q/200,1/6)-1, f=i/(1-Math.pow(1+i,-n)), mo=inc/12;
+  const ok=P=>{
+    const D=Math.min(down,P), ltv=(P-D)/P;
+    const premR=(!inv&&ltv>0.8+1e-9)?((ltv>0.9?0.04:ltv>0.85?0.031:0.028)+(am===30?0.002:0)):0;
+    const pmt=(P-D)*(1+premR)*f, house=pmt+0.008*P/12+HEAT;
+    return house<=GDS_MAX*mo&&house+debts<=TDS_MAX*mo;
+  };
+  let lo=down,hi=6000000;
+  for(let k=0;k<60;k++){const mid=(lo+hi)/2; if(ok(mid))lo=mid; else hi=mid}
+  let price=lo; if(down>0) price=Math.min(price,maxPriceFor(down,inv));
+  const mort=Math.max(0,price-down);
+  return {price:price,mort:mort,q:q,am:am};
+}
+
 /* ---------- Helpers ---------- */
 const $=s=>document.querySelector(s);
 const fm=n=>(n<0?'−$':'$')+Math.round(Math.abs(n)).toLocaleString('en-CA');
@@ -511,12 +530,13 @@ const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: redu
 function scrollToEl(el){el.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})}
 
 /* ---------- Intake state ---------- */
-const STEPS=['Buyer','Purpose','Down payment','Current home','Search','Viewings','Timing','Areas'];
+const STEPS=['Buyer','Purpose','Down payment','Pre-approval','Current home','Search','Viewings','Timing','Areas'];
 const BANDS=[
  {id:'b1',label:'Under $50K',val:35000},{id:'b2',label:'$50K to $100K',val:75000},
  {id:'b3',label:'$100K to $200K',val:150000},{id:'b4',label:'$200K to $300K',val:250000},{id:'b5',label:'$300K or more',val:350000}];
+const CREDIT=[['lt600','Under 600'],['600','600 to 679'],['680','680 to 719'],['720','720 or higher'],['unsure','Not sure']];
 const LOOK=['Just starting','Under 3 months','3 to 6 months','6 to 12 months','Over a year'];
-const S={fthb:null,purpose:null,sell:null,down:0,band:null,gift:null,giftAmt:0,looking:null,seen:null,where:'',like:'',dislike:'',when:null,precon:null,areas:[],done:false};
+const S={fthb:null,purpose:null,sell:null,down:0,band:null,gift:null,giftAmt:0,preapp:null,preAmt:0,preRate:0,inc:0,debt:0,credit:null,looking:null,seen:null,where:'',like:'',dislike:'',when:null,precon:null,areas:[],done:false};
 let step=0;
 const app=$('#app');
 
@@ -528,11 +548,12 @@ function canContinue(s){
     case 0:return !!S.fthb;
     case 1:return !!S.purpose;
     case 2:return S.down>0&&!!S.gift&&(S.gift==='no'||(S.giftAmt>0&&S.giftAmt<=S.down));
-    case 3:return !!S.sell;
-    case 4:return !!S.looking;
-    case 5:return S.seen==='no'||(S.seen==='yes'&&S.where.trim().length>0);
-    case 6:return !!S.when&&(S.when==='lt1'||!!S.precon);
-    case 7:return S.areas.length>0;
+    case 3:return S.preapp==='yes'?S.preAmt>0:S.preapp==='no'?(S.inc>0&&!!S.credit):false;
+    case 4:return !!S.sell;
+    case 5:return !!S.looking;
+    case 6:return S.seen==='no'||(S.seen==='yes'&&S.where.trim().length>0);
+    case 7:return !!S.when&&(S.when==='lt1'||!!S.precon);
+    case 8:return S.areas.length>0;
   }
   return false;
 }
@@ -556,18 +577,36 @@ function stepHTML(s){
     <h3>Will any of it be a gift?</h3>
     ${yn('gift',S.gift)}${gift}`;
   }
-  if(s===3) return `<h2 id="qh" tabindex="-1">Do you need to sell your current home to buy?</h2>
+  if(s===3){
+    const yes=S.preapp==='yes'?`<div class="field" style="max-width:360px"><label for="preAmt">Mortgage amount you were approved for</label>
+      <div class="pre"><span>$</span><input id="preAmt" type="text" inputmode="numeric" value="${S.preAmt?S.preAmt.toLocaleString('en-CA'):''}" placeholder="650,000"></div></div>
+      <div class="field" style="max-width:360px"><label for="preRate">Approved interest rate <span class="sub">optional, %</span></label>
+      <input id="preRate" type="text" inputmode="decimal" value="${S.preRate||''}" placeholder="4.34"></div>
+      <p class="fine">We use this amount as your ceiling, and the rate in the calculator in part 4. Pre-approvals are usually held for 90 to 120 days, so check yours is still active.</p>`:'';
+    const no=S.preapp==='no'?`<p class="hint" style="margin-top:14px">No problem. Answer these and we will give you a rough estimate. It is not a pre-approval, only a lender can give you one.</p>
+      <div class="field" style="max-width:360px"><label for="incAmt">Household income before tax <span class="sub">per year, all buyers combined</span></label>
+      <div class="pre"><span>$</span><input id="incAmt" type="text" inputmode="numeric" value="${S.inc?S.inc.toLocaleString('en-CA'):''}" placeholder="120,000"></div></div>
+      <div class="field" style="max-width:360px"><label for="debtAmt">Monthly debt payments <span class="sub">car loans, credit card minimums, student loans, lines of credit</span></label>
+      <div class="pre"><span>$</span><input id="debtAmt" type="text" inputmode="numeric" value="${S.debt?S.debt.toLocaleString('en-CA'):''}" placeholder="0"></div></div>
+      <h3>Roughly what is your credit score?</h3>
+      <div class="chips">${CREDIT.map(c=>chip('credit',c[0],c[1],S.credit===c[0])).join('')}</div>
+      <div id="estBox">${estHTML()}</div>`:'';
+    return `<h2 id="qh" tabindex="-1">Have you been pre-approved for a mortgage?</h2>
+    <p class="hint">A pre-approval is a lender's written estimate of how much they would lend you. If you have one, we use it in the calculators.</p>
+    <div class="chips">${chip('preapp','yes','Yes, I have a pre-approval',S.preapp==='yes')}${chip('preapp','no','No, not yet',S.preapp==='no')}</div>${yes}${no}`;
+  }
+  if(s===4) return `<h2 id="qh" tabindex="-1">Do you need to sell your current home to buy?</h2>
     <p class="hint">If you own a home now, when it sells shapes your offers, your conditions and your financing. Parts eight and nine cover how.</p>
     <div class="chips">${chip('sell','yes','Yes, I need to sell first',S.sell==='yes')}${chip('sell','no','No, I do not need to sell',S.sell==='no')}${chip('sell','none','I do not own a home',S.sell==='none')}</div>${S.sell==='yes'&&S.fthb==='yes'?'<div class="note" style="margin-top:16px"><strong>Check your first answer.</strong> You said you are a first-time buyer, but owning a home you live in usually means you are not. You can go back and change it.</div>':''}`;
-  if(s===4) return `<h2 id="qh" tabindex="-1">How long have you been looking?</h2>
+  if(s===5) return `<h2 id="qh" tabindex="-1">How long have you been looking?</h2>
     <div class="chips">${LOOK.map(l=>chip('looking',l,l,S.looking===l)).join('')}</div>`;
-  if(s===5){
+  if(s===6){
     const more=S.seen==='yes'?`<div class="field"><label for="where">Where did you go?</label><input id="where" type="text" value="${esc(S.where)}" placeholder="Neighbourhoods, buildings or addresses"></div>
       <div class="field"><label for="like">What did you like?</label><textarea id="like" placeholder="Layout, light, location, price, anything that stood out">${esc(S.like)}</textarea></div>
       <div class="field"><label for="dislike">What did you not like?</label><textarea id="dislike" placeholder="Noise, condition, size, fees, commute">${esc(S.dislike)}</textarea></div>`:'';
     return `<h2 id="qh" tabindex="-1">Have you gone to see any homes?</h2>${yn('seen',S.seen)}${more}`;
   }
-  if(s===6){
+  if(s===7){
     const sub=S.when==='gt1'?`<h3>Do you want pre-construction?</h3>
       <p class="hint">You buy from plans, pay deposits in stages and move in when the building or street is finished.</p>
       <div class="chips">${chip('precon','yes','Yes',S.precon==='yes')}${chip('precon','no','No',S.precon==='no')}${chip('precon','unsure','Not sure yet',S.precon==='unsure')}</div>`
@@ -578,6 +617,28 @@ function stepHTML(s){
   const groups=AREAS.map(r=>`<div class="grp"><h4>${r.region}</h4><div class="chips">${r.items.map(a=>chip('area',a.id,a.label,S.areas.indexOf(a.id)>-1)).join('')}</div></div>`).join('');
   return `<h2 id="qh" tabindex="-1">What areas are you looking at?</h2>
     <p class="hint">Pick as many as you like. Market numbers for each one appear below as you choose.</p>${groups}<div id="stats">${statsHTML()}</div>`;
+}
+
+function estNow(){
+  if(S.preapp!=='no'||!(S.inc>0)) return null;
+  return preEst(S.inc,S.debt||0,S.down||0,S.fthb,S.purpose==='investment',4.34);
+}
+function creditNote(){
+  const c=S.credit;
+  if(c==='lt600') return 'Under 600 is hard to approve at a bank. Alternative lenders may help, usually at a higher rate and with a larger down payment. A mortgage broker can tell you what is realistic.';
+  if(c==='600') return 'A score from 600 to 679 can work with some lenders, but the rate may be higher. Mortgage insurers usually want 680 or more, so a down payment under 20% may be harder.';
+  if(c==='680') return 'This is a workable range for most lenders and for insured mortgages. A higher score can still lower your rate.';
+  if(c==='720') return 'This range usually gets the best rates lenders offer.';
+  return 'Your credit score affects your approval and your rate. You can check it free through your bank or a credit reporting service, without hurting it.';
+}
+function estHTML(){
+  const e=estNow();
+  if(!e) return '<p class="fine" style="margin-top:12px">Enter your income to see an estimate.</p>';
+  const lo=v=>Math.round(v*0.9/5000)*5000, hi=v=>Math.round(v/5000)*5000;
+  const priceLine=S.down>0?`<div><span>Rough home price you could afford</span><span>${fm(S.down+lo(e.mort))} to ${fm(S.down+hi(e.mort))}</span></div>`:'';
+  return `<div class="card" style="margin:16px 0 0"><div class="rows"><div><span>Rough mortgage you might be approved for</span><span>${fm(lo(e.mort))} to ${fm(hi(e.mort))}</span></div>${priceLine}</div>
+    <p class="fine" style="margin:10px 0 0">${creditNote()}</p>
+    <p class="fine" style="margin:8px 0 0">How this is worked out: lenders test you at a higher rate, ${e.q.toFixed(2)}% here, over ${e.am} years. Housing costs may use up to 39% of your income, and housing plus all debts up to 44%. We assume property tax of 0.8% of the price and $${HEAT} a month for heat, and we do not count condo fees. Real lenders differ, so treat this as a starting point and get a pre-approval before you shop.</p></div>`;
 }
 
 function statsHTML(){
@@ -595,10 +656,10 @@ function renderApp(focus){
       <p class="hint">${n?'The sections below use them. Change an answer any time and the guide updates.':'The sections below still work with general numbers. Answer the questions any time to tailor them.'}</p></div>
       <div class="nav"><button type="button" class="btn" data-act="goto2">Go to part 2</button><button type="button" class="btn ghost" data-act="edit">${n?'Edit my answers':'Answer the questions'}</button></div>`;
   } else {
-    app.innerHTML=`<div class="prog" role="progressbar" aria-valuemin="1" aria-valuemax="8" aria-valuenow="${step+1}" aria-label="Step ${step+1} of 8">${STEPS.map((x,i)=>`<span class="seg ${i<=step?'on':''}"></span>`).join('')}</div>
-      <p class="stepno">Step ${step+1} of 8 · ${STEPS[step]}</p>
+    app.innerHTML=`<div class="prog" role="progressbar" aria-valuemin="1" aria-valuemax="${STEPS.length}" aria-valuenow="${step+1}" aria-label="Step ${step+1} of ${STEPS.length}">${STEPS.map((x,i)=>`<span class="seg ${i<=step?'on':''}"></span>`).join('')}</div>
+      <p class="stepno">Step ${step+1} of ${STEPS.length} · ${STEPS[step]}</p>
       <div class="q">${stepHTML(step)}</div>
-      <div class="nav">${step>0?'<button type="button" class="btn ghost" data-act="back">Back</button>':''}<button id="next" type="button" class="btn" data-act="next" ${canContinue(step)?'':'disabled'}>${step===7?'See what is available':'Continue'}</button><button type="button" class="btn ghost" data-act="skip" style="margin-left:auto">Skip this question</button></div>`;
+      <div class="nav">${step>0?'<button type="button" class="btn ghost" data-act="back">Back</button>':''}<button id="next" type="button" class="btn" data-act="next" ${canContinue(step)?'':'disabled'}>${step===STEPS.length-1?'See what is available':'Continue'}</button><button type="button" class="btn ghost" data-act="skip" style="margin-left:auto">Skip this question</button></div>`;
   }
   ledger();
   if(focus){const h=$('#qh'); if(h){h.focus({preventScroll:true}); const r=app.getBoundingClientRect(); if(r.top<0||r.top>window.innerHeight*.6) scrollToEl(app);}}
@@ -606,6 +667,11 @@ function renderApp(focus){
 
 function areaNames(){return S.areas.map(id=>ALL.find(a=>a.id===id).label)}
 function downText(){return S.down?fm(S.down)+(S.gift==='yes'&&S.giftAmt?' ('+fm(S.giftAmt)+' gifted)':''):''}
+function preText(){
+  if(S.preapp==='yes') return S.preAmt?fm(S.preAmt)+(S.preRate?' at '+S.preRate+'%':''):'Yes';
+  if(S.preapp==='no'){const e=estNow(); return 'Not yet'+(e?', estimate up to '+fm(Math.round(e.mort/5000)*5000):'')}
+  return '';
+}
 function whenText(){
   if(!S.when) return '';
   if(S.when==='lt1') return 'Under 1 year, resale';
@@ -616,6 +682,7 @@ function answers(){
     ['First-time buyer',S.fthb?(S.fthb==='yes'?'Yes':'No'):''],
     ['Purpose',S.purpose?(S.purpose==='personal'?'Personal use':'Investment'):''],
     ['Down payment',downText()],
+    ['Pre-approval',preText()],
     ['Current home',S.sell?(S.sell==='yes'?'Need to sell first':S.sell==='no'?'No need to sell':'Do not own a home'):''],
     ['Looking for',S.looking||''],
     ['Seen homes',S.seen?(S.seen==='no'?'Not yet':'Yes'+(S.where?', '+S.where:'')):''],
@@ -634,14 +701,15 @@ function clearStep(s){
   if(s===0)S.fthb=null;
   if(s===1)S.purpose=null;
   if(s===2){S.down=0;S.band=null;S.gift=null;S.giftAmt=0}
-  if(s===3)S.sell=null;
-  if(s===4)S.looking=null;
-  if(s===5){S.seen=null;S.where='';S.like='';S.dislike=''}
-  if(s===6){S.when=null;S.precon=null}
-  if(s===7)S.areas=[];
+  if(s===3){S.preapp=null;S.preAmt=0;S.preRate=0;S.inc=0;S.debt=0;S.credit=null}
+  if(s===4)S.sell=null;
+  if(s===5)S.looking=null;
+  if(s===6){S.seen=null;S.where='';S.like='';S.dislike=''}
+  if(s===7){S.when=null;S.precon=null}
+  if(s===8)S.areas=[];
 }
 function advance(){
-  if(step<7){step++;renderApp(true)}
+  if(step<STEPS.length-1){step++;renderApp(true)}
   else submit();
 }
 
@@ -652,7 +720,7 @@ app.addEventListener('click',e=>{
     if(a==='next'&&canContinue(step)) advance();
     else if(a==='back'&&step>0){step--;renderApp(true)}
     else if(a==='skip'){clearStep(step);advance()}
-    else if(a==='edit'){S.done=false;step=answers().length?7:0;renderApp(true)}
+    else if(a==='edit'){S.done=false;step=answers().length?STEPS.length-1:0;renderApp(true)}
     else if(a==='goto2'){scrollToEl($('#sr'))}
     return;
   }
@@ -665,6 +733,8 @@ app.addEventListener('click',e=>{
   else if(g==='looking')S.looking=v;
   else if(g==='band'){const b=BANDS.find(x=>x.id===v);S.band=v;S.down=b.val}
   else if(g==='gift'){S.gift=v;if(v==='no')S.giftAmt=0}
+  else if(g==='preapp'){S.preapp=v}
+  else if(g==='credit'){S.credit=v}
   else if(g==='seen'){S.seen=v}
   else if(g==='when'){S.when=v;if(v==='lt1')S.precon=null}
   else if(g==='precon'){S.precon=v}
@@ -679,6 +749,9 @@ app.addEventListener('input',e=>{
   const id=e.target.id;
   if(id==='downCustom'){S.down=num(e.target.value);S.band=null;app.querySelectorAll('[data-g="band"]').forEach(b=>b.setAttribute('aria-pressed','false'))}
   else if(id==='giftAmt'){S.giftAmt=num(e.target.value);const h=$('#giftHint');if(h)h.textContent=S.giftAmt>S.down&&S.down?'The gift cannot be larger than the total down payment.':'Most lenders ask for a signed gift letter confirming the money does not have to be repaid.'}
+  else if(id==='preAmt')S.preAmt=num(e.target.value);
+  else if(id==='preRate'){const r=parseFloat(e.target.value);S.preRate=isFinite(r)&&r>0&&r<20?r:0}
+  else if(id==='incAmt'||id==='debtAmt'){if(id==='incAmt')S.inc=num(e.target.value);else S.debt=num(e.target.value);const b=$('#estBox');if(b)b.innerHTML=estHTML()}
   else if(id==='where')S.where=e.target.value;
   else if(id==='like')S.like=e.target.value;
   else if(id==='dislike')S.dislike=e.target.value;
@@ -697,9 +770,16 @@ function areaPrice(type){
   return v;
 }
 function curDown(){return M&&M.down?M.down:(S.down||100000)}
+function budgetCap(){
+  const d=curDown();
+  if(S.preapp==='yes'&&S.preAmt>0) return {max:S.preAmt+d,kind:'pre'};
+  const e=estNow(); if(e) return {max:(S.down>0?S.down:0)+e.mort,kind:'est'};
+  return null;
+}
 function defaultsFor(type,view){
   const inv=view==='invest';
-  const cap=maxPriceFor(curDown(),inv);
+  const bc=budgetCap();
+  const cap=Math.min(maxPriceFor(curDown(),inv),bc?bc.max:Infinity);
   const raw=areaPrice(type);
   const price=Math.max(200000,Math.min(2000000,Math.floor(Math.min(raw,cap)/5000)*5000));
   const rent=Math.round(price*(type==='condo'?0.004:0.0035)/50)*50;
@@ -712,7 +792,7 @@ function initM(){
   const dc=defaultsFor('condo',view), dh=defaultsFor('house',view);
   const type=(areaPrice('house')<=dh.cap)?'house':'condo';
   const d=type==='condo'?dc:dh;
-  M={view:view,type:type,down:dn,loc:S.areas.some(id=>ALL.find(a=>a.id===id).tor),price:d.price,rent:d.rent,rate:4.34,amort:S.fthb==='yes'?30:25,
+  M={view:view,type:type,down:dn,loc:S.areas.some(id=>ALL.find(a=>a.id===id).tor),price:d.price,rent:d.rent,rate:(S.preapp==='yes'&&S.preRate)?S.preRate:4.34,amort:S.fthb==='yes'?30:25,
      years:10,appr:3,invr:5,rg:3,fee:575,taxr:0.8};
 }
 
@@ -721,6 +801,12 @@ function readsHTML(){
   const raw=areaPrice(M.type), tl=M.type==='condo'?'condo apartment':'home (all types)';
   const items=[];
   items.push(`<li><b>What your down payment covers</b><span>${inv?'Investment properties need at least 20% down, so ':'Under the minimum down payment rules, '}${fm(M.down)} supports a purchase up to about ${fm(maxP)}${!inv&&maxP>=1499999?' (insured mortgages stop at $1.5 million)':''}. The average ${tl} in ${S.areas.length?esc(areaNames().join(', ')):'the GTA'} is about ${fm(raw)}${raw>maxP?', so budget is the main constraint right now':''}. Lenders also test your income at a higher rate, so a pre-approval gives the real ceiling.</span></li>`);
+  const bc=budgetCap();
+  if(bc){
+    const over=M.price>bc.max+1;
+    const head=bc.kind==='pre'?`Your pre-approval of ${fm(S.preAmt)}${S.preRate?' at '+S.preRate+'%':''}`:'Your rough pre-approval estimate';
+    items.push(`<li><b>${bc.kind==='pre'?'Your pre-approval':'Rough pre-approval estimate'}</b><span>${head}, plus ${fm(M.down)} down, points to a home price of up to about ${fm(bc.max)}.${bc.kind==='pre'?' The calculator starts at or below that price'+(S.preRate?' and uses your approved rate':'')+'.':' This is only an estimate from the income, debts and credit you entered. Get a real pre-approval to confirm it.'}${over?' <b>The price you have selected is above this, so a lender may not approve it.</b>':''}</span></li>`);
+  }
   if(S.fthb==='yes'&&!inv) items.push(`<li><b>First-time buyer programs</b><span>The land transfer tax refunds are built into the numbers below. The FHSA, the Home Buyers' Plan and the other programs are listed in part 3.</span></li>`);
   if(S.gift==='yes'&&S.giftAmt) items.push(`<li><b>Your ${fm(S.giftAmt)} gift</b><span>Get the gift letter signed early. The lender will want it, along with proof the money is in your account, before they approve the mortgage.</span></li>`);
   if(S.sell==='yes') items.push(`<li><b>Selling your current home</b><span>The numbers below assume the money for your down payment is in hand. If it comes from the sale, timing matters: see parts 8 and 9 for conditions and closing dates, and ask your lender about bridge financing.</span></li>`);
@@ -823,10 +909,18 @@ function fit(k){
   if(k==='eco'){ return pre==='yes'?'yes':''; }
   return '';
 }
+function countdownHTML(d,label){
+  const end=new Date(d[0],d[1]-1,d[2],23,59,59), ms=end-new Date();
+  const when=end.toLocaleDateString('en-CA',{year:'numeric',month:'long',day:'numeric'});
+  if(ms<0) return `<div class="note" style="margin:12px 0"><strong>${label} has ended.</strong> The signing deadline was ${when}. Check whether it was extended.</div>`;
+  const days=Math.ceil(ms/864e5);
+  const span=days>=60?' (about '+Math.round(days/30.4)+' months)':'';
+  return `<div class="note" style="margin:12px 0" role="status"><strong>${days.toLocaleString('en-CA')} ${days===1?'day':'days'} left${span}</strong> to sign your builder agreement and qualify for ${label}. The deadline is ${when}.${days<=120?' If you are thinking about a new build, talk to your agent and lawyer about timing now.':''}</div>`;
+}
 function prog(o){
   const f=o.k?fit(o.k):'';
   const tag=f==='yes'?'<span class="tag yes">Fits your answers</span>':f==='maybe'?'<span class="tag maybe">Check eligibility</span>':f==='no'?'<span class="tag no">Probably not for you</span>':'';
-  return `<article class="pc"><div class="pt"><h4>${o.title}</h4>${tag}</div><p class="pv">${o.value}</p><p>${o.lede}</p>
+  return `<article class="pc"><div class="pt"><h4>${o.title}</h4>${tag}</div><p class="pv">${o.value}</p><p>${o.lede}</p>${o.ends?countdownHTML(o.ends,o.endsLabel):''}
     <details><summary>The details</summary><ul class="list">${o.bullets.map(b=>`<li>${b}</li>`).join('')}</ul></details></article>`;
 }
 function igrp(title,intro,body){return `<div class="ig"><h3>${title}</h3>${intro?`<p class="hint">${intro}</p>`:''}${body}</div>`}
@@ -847,7 +941,7 @@ function incentivesHTML(){
      bullets:["The money must sit in the RRSP for at least 90 days in a row before you withdraw it. Withdrawing sooner disallows the tax deduction.","You repay it over 15 years, starting the second year after the withdrawal.","Any yearly repayment you miss is added to your income for that year."]}
   ];
   const tax=[
-    {k:'hst',title:"New-build tax rebates: Ontario HST relief and the federal GST rebate (Bill C-4)",value:"Ontario relief up to $130,000, plus up to $50,000 federal for first-time buyers",
+    {k:'hst',ends:[2027,3,31],endsLabel:'Ontario HST relief',title:"New-build tax rebates: Ontario HST relief and the federal GST rebate (Bill C-4)",value:"Ontario relief up to $130,000, plus up to $50,000 federal for first-time buyers",
      lede:"Two programs return tax on a newly built home. Ontario's expanded 2026 relief covers all eligible buyers. The federal GST rebate under Bill C-4 is for first-time buyers only. Neither applies to resale homes, which carry no GST or HST.",
      bullets:["<b>Ontario HST relief (2026):</b> on homes up to $1,000,000 the full 13% HST comes back, up to $130,000. From $1,000,000 to $1,500,000 the maximum stays at $130,000. It then shrinks to the older $24,000 provincial rebate by $1,850,000.","<b>Ontario HST relief, who and when:</b> your agreement with the builder must be signed between April 1, 2026 and March 31, 2027. The home must be your primary residence or a qualifying rental. Construction must start before 2029 and be substantially complete before 2032. Ontario's Bill 114 became law on May 12, 2026, and the relief applies back to April 1, 2026.","<b>Federal GST rebate (Bill C-4):</b> the full 5% GST on homes up to $1,000,000, shrinking in a straight line to zero at $1,500,000. That is up to $50,000, once in your lifetime.","<b>Federal GST rebate, who and when:</b> you must be 18 or older, a Canadian citizen or permanent resident, and not have lived in a home you or your spouse owned, anywhere in the world, in the current year or the four years before. It covers agreements signed with a builder from March 20, 2025 to before 2031, with construction finishing before 2036. For owner-built homes, construction must start on or after March 20, 2025 and before 2031. Bill C-4 became law on March 12, 2026 and the CRA portal opened on March 17, 2026.","<b>How they combine:</b> the Ontario figure of up to $130,000 already includes help with the federal 5%, so the two do not simply add. Ask your lawyer or builder how your closing statement combines them. A first-time buyer who also qualifies for Ontario's first-time buyer rebate gets the greater of that rebate and the HST relief, not both.","<b>Getting the money:</b> the builder can credit the rebates against your price on closing day, or you can claim them from the CRA, the federal GST rebate within two years of taking possession. A credit at closing is not guaranteed. If the builder does not credit the HST, you may have to pay it and claim it later, which can take months. Some contracts make you liable if a rebate is denied or delayed, so have your lawyer read that clause. Make sure your agreement spells out both rebates.","Some CRA forms for the Ontario relief were still being released in mid-2026, so ask your builder how it is being handled. Details come from public law-firm and industry summaries, so confirm them with your lawyer or builder: "+lk('https://www.airdberlis.com/insights/publications/publication/2026-ontario-budget--enhanced-hst-relief-on-new-homes','Aird Berlis')+", "+lk('https://www.pwc.com/ca/en/services/tax/publications/tax-insights/enhanced-hst-relief-sale-new-homes-ontario-2026.html','PwC')+", "+lk('https://buildersontario.com/ontario-new-home-hst/','Builders Ontario')+"."]},
     {k:'hbtc',title:"First-Time Home Buyers' Tax Credit",value:"$1,500 off your federal tax",
