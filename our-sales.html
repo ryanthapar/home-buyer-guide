@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homes We Have Sold and Bought | The Thapar Team</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="vendor/leaflet/MarkerCluster.css">
+<link rel="stylesheet" href="vendor/leaflet/MarkerCluster.Default.css">
+<style>
+  :root{--bg:#F1F5F3;--surface:#fff;--ink:#10201C;--ink-2:#475953;--line:#CBD7D2;--accent:#0B6B66;--on-accent:#fff;--sold:#0B6B66;--bought:#B2601A;--both:#6741D9}
+  @media (prefers-color-scheme:dark){:root{--bg:#0B1513;--surface:#132220;--ink:#E6F0ED;--ink-2:#9DB2AC;--line:#27403B;--accent:#4DC2B6;--on-accent:#06201D;--sold:#4DC2B6;--bought:#E8A46B;--both:#A593F0}}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);display:flex;flex-direction:column}
+  header{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .back{font-size:13px;color:var(--ink-2);text-decoration:none}.back:hover{color:var(--accent);text-decoration:underline}
+  h1{font-size:17px;margin:0 6px 0 0}
+  .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .lab{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-right:2px}
+  button.chip{font:inherit;font-size:13px;padding:6px 11px;border:1.5px solid var(--line);border-radius:999px;background:transparent;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  button.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+  button.chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .tot{margin-left:auto;font-size:14px;color:var(--ink-2)}.tot b{color:var(--ink)}
+  main{flex:1;min-height:0;position:relative}
+  #map{position:absolute;inset:0;background:#dfe6e3}
+  #msg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:1000;background:var(--bg);color:var(--ink-2)}
+  .note{padding:7px 16px;font-size:12px;color:var(--ink-2);background:var(--surface);border-top:1px solid var(--line)}
+  .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(11,107,102,.25)}
+  .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{background:rgba(11,107,102,.85);color:#fff;font-weight:700}
+  .pop b{font-size:14px}.pop div{font-size:13px;color:#444;margin-top:2px}
+  .embed .back,.embed h1{display:none}
+</style>
+<script>if(/[?&]embed=1/.test(location.search))document.documentElement.className+=' embed'</script>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html#s11">&larr; Home Buyer Guide</a>
+  <h1>Homes we have sold and bought</h1>
+  <div class="grp" id="sides" role="group" aria-label="Type of transaction"></div>
+  <div class="grp" id="years" role="group" aria-label="Year"></div>
+  <div class="tot" id="tot" aria-live="polite"></div>
+</header>
+<main><div id="map" aria-label="Map of homes we have sold and bought"></div><div id="msg"></div></main>
+<div class="note">Pins show the approximate location of each home, not the exact address. Prices and addresses are not shown. Map data &copy; OpenStreetMap contributors.</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/leaflet/leaflet.markercluster.js"></script>
+<script>
+(function(){
+  var SIDES={L:{label:'Sold for the seller',color:'var(--sold)',hex:'#0B6B66'},S:{label:'Bought for the buyer',color:'var(--bought)',hex:'#B2601A'},B:{label:'Both sides',color:'var(--both)',hex:'#6741D9'}};
+  var $=function(id){return document.getElementById(id)};
+  var TYPES={'Att-Row-Twnhouse':'Row townhouse','Condo Apt':'Condo apartment','Co-Ownership Apt':'Co-ownership apartment','Condo Townhouse':'Condo townhouse','Link':'Link home'};
+  var all=[],selSides={L:true,S:true,B:true},selYears=null,years=[],map,cluster;
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function msg(t){var m=$('msg');m.textContent=t;m.style.display='flex'}
+
+  function init(){
+    map=L.map('map',{zoomControl:true}).setView([43.68,-79.52],11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+    cluster=L.markerClusterGroup({showCoverageOnHover:false,maxClusterRadius:45,spiderfyOnMaxZoom:true}).addTo(map);
+  }
+  function buildControls(){
+    $('sides').innerHTML='<span class="lab">Type</span>'+Object.keys(SIDES).map(function(k){
+      return '<button type="button" class="chip" data-side="'+k+'" aria-pressed="true"><span class="dot" style="background:'+SIDES[k].hex+'"></span>'+SIDES[k].label+'</button>'}).join('');
+    $('years').innerHTML='<span class="lab">Year</span><button type="button" class="chip" data-year="all" aria-pressed="true">All</button>'+
+      years.map(function(y){return '<button type="button" class="chip" data-year="'+y+'" aria-pressed="false">'+y+'</button>'}).join('');
+  }
+  function draw(){
+    cluster.clearLayers();
+    var n=0,c={L:0,S:0,B:0},pts=[];
+    all.forEach(function(r){
+      if(!selSides[r.s]) return;
+      if(selYears&&!selYears[r.y]) return;
+      n++;c[r.s]++;
+      var m=L.circleMarker([r.lat,r.lng],{radius:8,color:'#fff',weight:2,fillColor:SIDES[r.s].hex,fillOpacity:.95});
+      m.bindPopup('<div class="pop"><b>'+esc(SIDES[r.s].label)+'</b><div>'+esc(r.y)+' &middot; '+esc(TYPES[r.t]||r.t||'Home')+'</div><div>'+esc(r.c||'')+'</div></div>');
+      cluster.addLayer(m);pts.push([r.lat,r.lng]);
+    });
+    $('tot').innerHTML='<b>'+n.toLocaleString('en-CA')+'</b> '+(n===1?'home':'homes')+(years.length?' &middot; '+years[0]+' to '+years[years.length-1]:'');
+    if(pts.length) map.fitBounds(L.latLngBounds(pts),{padding:[30,30],maxZoom:14});
+  }
+  document.addEventListener('click',function(e){
+    var s=e.target.closest('[data-side]'),y=e.target.closest('[data-year]');
+    if(s){var k=s.dataset.side;selSides[k]=!selSides[k];s.setAttribute('aria-pressed',String(selSides[k]));draw()}
+    else if(y){
+      var v=y.dataset.year,btns=document.querySelectorAll('[data-year]');
+      if(v==='all'){selYears=null}
+      else{selYears=selYears||{};selYears[v]=!selYears[v];if(!Object.keys(selYears).some(function(k){return selYears[k]}))selYears=null}
+      btns.forEach(function(b){var on=b.dataset.year==='all'?!selYears:!!(selYears&&selYears[b.dataset.year]);b.setAttribute('aria-pressed',String(on))});
+      draw();
+    }
+  });
+
+  init();
+  fetch('data/sales.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('missing');return r.json()}).then(function(d){
+    all=(d.records||[]).filter(function(r){return isFinite(r.lat)&&isFinite(r.lng)});
+    if(!all.length){msg('The map is being updated. Please check back soon.');return}
+    years=Array.from(new Set(all.map(function(r){return r.y}))).sort();
+    buildControls();draw();
+  }).catch(function(){msg('The map is being updated. Please check back soon.')});
+})();
+</script>
+</body>
+</html>

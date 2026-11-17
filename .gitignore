@@ -1,0 +1,5 @@
+# Raw MLS exports hold client data: never commit them
+*.xlsx
+*.xls
+*.csv
+private/

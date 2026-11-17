@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Build sales map data | The Thapar Team</title>
+<style>
+  :root{--bg:#F1F5F3;--surface:#fff;--ink:#10201C;--ink-2:#475953;--line:#CBD7D2;--accent:#0B6B66;--on-accent:#fff;--bad:#A8312B;--good:#1A7342}
+  @media (prefers-color-scheme:dark){:root{--bg:#0B1513;--surface:#132220;--ink:#E6F0ED;--ink-2:#9DB2AC;--line:#27403B;--accent:#4DC2B6;--on-accent:#06201D;--bad:#F2887F;--good:#5BCB8D}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:24px 16px 72px}
+  .wrap{max-width:860px;margin:0 auto}
+  h1{font-size:28px;margin:0 0 6px} h2{font-size:18px;margin:0 0 8px}
+  p{margin:0 0 10px;color:var(--ink-2)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:16px}
+  label{display:block;font-weight:600;font-size:14px;margin-bottom:4px;color:var(--ink)}
+  input[type=text]{width:100%;max-width:420px;padding:9px 10px;font:inherit;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+  button{font:600 15px inherit;font-family:inherit;padding:10px 16px;border-radius:8px;border:0;background:var(--accent);color:var(--on-accent);cursor:pointer}
+  button[disabled]{opacity:.45;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin-top:8px}
+  th,td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:right} th:first-child,td:first-child{text-align:left}
+  progress{width:100%;height:14px;margin-top:10px}
+  .ok{color:var(--good)} .bad{color:var(--bad)}
+  .log{font:13px/1.5 ui-monospace,Menlo,monospace;max-height:220px;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:10px;white-space:pre-wrap}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  ol{margin:0;padding-left:20px;color:var(--ink-2)} li{margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Build the sales map data</h1>
+  <p>Private tool. It is not linked from the guide. Everything runs in this browser: your MLS export files are read here and are never uploaded. Only the address lookups go to Google.</p>
+
+  <div class="card">
+    <h2>How to use it</h2>
+    <ol>
+      <li>Choose the MLS transaction exports (.xlsx or .csv). You can pick all years at once, or add new years later.</li>
+      <li>Press <b>Read files</b>, then <b>Look up locations</b>. 1,700 addresses take about 4 minutes. A lookup you have already done is remembered in this browser.</li>
+      <li>Press <b>Download sales.json</b> and put it in the <code>data</code> folder of the repo (replacing the old file).</li>
+    </ol>
+    <p style="margin-top:10px">The file only holds an approximate pin (rounded to about 100 m), the year, the property type, the city and the type of transaction. Street addresses, prices, MLS numbers and agent names are not kept.</p>
+  </div>
+
+  <div class="card">
+    <h2>1. Files</h2>
+    <label for="files">MLS transaction exports</label>
+    <input id="files" type="file" accept=".xlsx,.xls,.csv" multiple>
+    <div style="margin-top:12px"><label for="team">Names that count as us</label>
+      <input id="team" type="text" value="Thapar">
+      <p style="margin-top:4px;font-size:13px">Comma separated. If one of these appears in <b>Listing Agent</b> we sold for the seller. In <b>Selling Agent</b> we bought for the buyer. In both, it is shown as both sides.</p></div>
+    <div class="row"><label style="margin:0"><input type="checkbox" id="merge" checked> Add to the map data already on the site</label></div>
+    <div class="row"><button id="read" disabled>Read files</button></div>
+    <div id="readOut"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Look up locations</h2>
+    <p id="keyStatus">Checking the Google key…</p>
+    <div class="row"><button id="geo" disabled>Look up locations</button><button id="stop" class="ghost" disabled>Pause</button></div>
+    <progress id="prog" value="0" max="1" hidden></progress>
+    <div id="geoOut"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Download</h2>
+    <div class="row"><button id="dl" disabled>Download sales.json</button></div>
+    <div id="dlOut"></div>
+  </div>
+</div>
+
+<script src="../vendor/xlsx.full.min.js"></script>
+<script src="../config.js"></script>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var CACHE_KEY='hbg_sales_geo_v1', rows=[], out=[], existing=[], geocoder=null, stopFlag=false;
+  var cache={};try{cache=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}')}catch(e){}
+  function saveCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify(cache))}catch(e){}}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+  /* ---------- Google ---------- */
+  var key=window.GOOGLE_MAPS_API_KEY||'';
+  function loadGoogle(){
+    if(!key){$('keyStatus').innerHTML='<span class="bad">No Google key found in config.js.</span> Add it there first.';return}
+    window.gm_authFailure=function(){$('keyStatus').innerHTML='<span class="bad">Google rejected the key.</span> Open this page from your site address (not from a file on your computer), and check the Geocoding API is enabled for the key.'};
+    window.__gmReady=function(){
+      google.maps.importLibrary('geocoding').then(function(){geocoder=new google.maps.Geocoder();$('keyStatus').innerHTML='<span class="ok">Google is ready.</span>';update()});
+    };
+    var s=document.createElement('script');
+    s.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(key)+'&v=weekly&loading=async&callback=__gmReady';
+    s.onerror=function(){$('keyStatus').innerHTML='<span class="bad">Could not load Google Maps.</span>'};
+    document.head.appendChild(s);
+  }
+
+  /* ---------- Reading files ---------- */
+  var COLS={mls:/^mls/i,la:/^listing agent$/i,sa:/^selling agent$/i,addr:/^property address$/i,zip:/^zip/i,city:/^city$/i,type:/^property type$/i,date:/^sold date$/i,lat:/^(lat|latitude)$/i,lng:/^(lng|lon|long|longitude)$/i};
+  function yearOf(v){
+    if(v instanceof Date) return v.getFullYear();
+    if(typeof v==='number'){var d=XLSX.SSF.parse_date_code(v);return d?d.y:null}
+    var m=String(v||'').match(/(19|20)\d{2}/);return m?+m[0]:null;
+  }
+  function parseSheet(ws){
+    var a=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});
+    var h=-1;for(var i=0;i<a.length;i++){if(a[i]&&a[i].some(function(c){return COLS.addr.test(String(c||'').trim())})){h=i;break}}
+    if(h<0) return {rows:[],err:'No "Property Address" column found'};
+    var idx={};a[h].forEach(function(c,j){var t=String(c||'').trim();Object.keys(COLS).forEach(function(k){if(idx[k]==null&&COLS[k].test(t))idx[k]=j})});
+    var res=[];
+    for(var r=h+1;r<a.length;r++){
+      var x=a[r];if(!x||!x[idx.addr]) continue;
+      if(/^totals?$/i.test(String(x[0]||'').trim())) continue;
+      res.push({mls:idx.mls!=null?x[idx.mls]:'',la:idx.la!=null?x[idx.la]:'',sa:idx.sa!=null?x[idx.sa]:'',addr:String(x[idx.addr]).trim(),zip:idx.zip!=null?x[idx.zip]:'',
+        city:idx.city!=null?x[idx.city]:'',type:idx.type!=null?x[idx.type]:'',year:yearOf(idx.date!=null?x[idx.date]:null),date:idx.date!=null?String(x[idx.date]):'',
+        lat:idx.lat!=null?+x[idx.lat]:NaN,lng:idx.lng!=null?+x[idx.lng]:NaN});
+    }
+    return {rows:res};
+  }
+  function sideOf(r,names){
+    var t=function(v){v=String(v||'').toLowerCase();return names.some(function(n){return v.indexOf(n)>-1})};
+    var l=t(r.la),s=t(r.sa);return l&&s?'B':l?'L':s?'S':null;
+  }
+  $('files').addEventListener('change',function(){$('read').disabled=!this.files.length});
+  $('read').addEventListener('click',function(){
+    var files=Array.prototype.slice.call($('files').files);
+    var names=$('team').value.split(',').map(function(s){return s.trim().toLowerCase()}).filter(Boolean);
+    if(!names.length){$('readOut').innerHTML='<p class="bad">Enter at least one name.</p>';return}
+    rows=[];var log=[];
+    Promise.all(files.map(function(f){return f.arrayBuffer().then(function(buf){
+      var wb=XLSX.read(buf,{type:'array',cellDates:true});var p=parseSheet(wb.Sheets[wb.SheetNames[0]]);
+      log.push(f.name+': '+(p.err?'<span class="bad">'+esc(p.err)+'</span>':p.rows.length+' transactions'));
+      p.rows.forEach(function(r){r.file=f.name;rows.push(r)});
+    })})).then(function(){
+      var seen={},skipped=0,noSide=0,noYear=0,keep=[];
+      rows.forEach(function(r){
+        var k=(r.mls||'')+'|'+r.addr+'|'+r.date; if(seen[k]){skipped++;return}seen[k]=1;
+        r.side=sideOf(r,names); if(!r.side){noSide++;return}
+        if(!r.year){noYear++;return}
+        keep.push(r);
+      });
+      rows=keep;
+      var by={};rows.forEach(function(r){by[r.year]=by[r.year]||{L:0,S:0,B:0};by[r.year][r.side]++});
+      var ys=Object.keys(by).sort();
+      var tbl='<table><thead><tr><th>Year</th><th>Sold for seller</th><th>Bought for buyer</th><th>Both sides</th><th>Total</th></tr></thead><tbody>'+
+        ys.map(function(y){var b=by[y];return '<tr><td>'+y+'</td><td>'+b.L+'</td><td>'+b.S+'</td><td>'+b.B+'</td><td>'+(b.L+b.S+b.B)+'</td></tr>'}).join('')+'</tbody></table>';
+      $('readOut').innerHTML='<div class="log">'+log.join('\n')+'</div>'+'<p style="margin-top:10px"><b>'+rows.length+'</b> transactions ready.'+(skipped?' '+skipped+' duplicates skipped.':'')+
+        (noSide?' <span class="bad">'+noSide+' skipped because none of the names matched.</span>':'')+(noYear?' <span class="bad">'+noYear+' skipped with no sold date.</span>':'')+'</p>'+tbl;
+      out=[];update();
+    }).catch(function(e){$('readOut').innerHTML='<p class="bad">Could not read a file: '+esc(e.message)+'</p>'});
+  });
+
+  /* ---------- Geocoding ---------- */
+  function queryFor(r){return r.addr+', '+(r.city||'Toronto')+', ON'+(r.zip?' '+r.zip:'')+', Canada'}
+  function sleep(ms){return new Promise(function(res){setTimeout(res,ms)})}
+  function lookup(q,tries){
+    return geocoder.geocode({address:q,region:'ca'}).then(function(res){
+      var g=res.results&&res.results[0];if(!g) return {fail:'no result'};
+      var lt=g.geometry.location_type,loc=g.geometry.location,lat=loc.lat(),lng=loc.lng();
+      if(g.partial_match) return {fail:'partial match'};
+      if(lt==='APPROXIMATE') return {fail:'approximate only'};
+      if(lat<41.6||lat>47||lng<-83||lng>-74) return {fail:'outside Ontario'};
+      return {lat:lat,lng:lng};
+    }).catch(function(e){
+      var c=String((e&&e.code)||e);
+      if(/ZERO_RESULTS/.test(c)) return {fail:'no result'};
+      if(/OVER_QUERY_LIMIT|UNKNOWN_ERROR/.test(c)&&tries<4) return sleep(1500*tries).then(function(){return lookup(q,tries+1)});
+      return {fail:c,fatal:/REQUEST_DENIED|INVALID_REQUEST/.test(c)};
+    });
+  }
+  $('stop').addEventListener('click',function(){stopFlag=true});
+  $('geo').addEventListener('click',function(){
+    stopFlag=false;$('geo').disabled=true;$('stop').disabled=false;$('prog').hidden=false;
+    var todo=[],seen={};
+    rows.forEach(function(r){
+      if(isFinite(r.lat)&&isFinite(r.lng)&&r.lat&&r.lng){return}
+      var q=queryFor(r);if(cache[q]||seen[q])return;seen[q]=1;todo.push(q);
+    });
+    var done=0,failed=[];$('prog').max=Math.max(todo.length,1);$('prog').value=0;
+    (function next(){
+      if(stopFlag||done>=todo.length){
+        saveCache();$('stop').disabled=true;$('geo').disabled=false;
+        $('geoOut').innerHTML='<p>'+(stopFlag?'Paused. Press the button to carry on where it stopped.':'Finished.')+' '+done+' of '+todo.length+' new addresses looked up.'+
+          (failed.length?' <span class="bad">'+failed.length+' could not be placed.</span>':'')+'</p>'+(failed.length?'<div class="log">'+failed.map(esc).join('\n')+'</div>':'');
+        build();return;
+      }
+      var q=todo[done];
+      lookup(q,1).then(function(res){
+        if(res.fatal){stopFlag=true;failed.push('Google refused the request: '+res.fail+'. Check the key and that the Geocoding API is enabled.');return}
+        if(res.fail){failed.push(q+'  ('+res.fail+')');cache[q]={f:res.fail}}else cache[q]=[res.lat,res.lng];
+        done++;$('prog').value=done;if(done%25===0)saveCache();
+      }).then(function(){return sleep(90)}).then(next);
+    })();
+  });
+
+  /* ---------- Build the public file ---------- */
+  function sha(str){
+    return crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)).then(function(b){
+      return Array.prototype.map.call(new Uint8Array(b),function(x){return ('0'+x.toString(16)).slice(-2)}).join('').slice(0,10)});
+  }
+  function build(){
+    var recs=[],miss=0;
+    var jobs=rows.map(function(r){
+      var lat=r.lat,lng=r.lng;
+      if(!(isFinite(lat)&&isFinite(lng)&&lat&&lng)){var c=cache[queryFor(r)];if(c&&c.length===2){lat=c[0];lng=c[1]}else{miss++;return Promise.resolve(null)}}
+      return sha(String(r.mls||'')+'|'+r.addr+'|'+r.date).then(function(id){
+        return {id:id,y:r.year,t:String(r.type||'').trim(),s:r.side,c:String(r.city||'').trim(),lat:Math.round(lat*1000)/1000,lng:Math.round(lng*1000)/1000}});
+    });
+    return Promise.all(jobs).then(function(list){
+      var map={};
+      if($('merge').checked) existing.forEach(function(r){map[r.id]=r});
+      list.forEach(function(r){if(r)map[r.id]=r});
+      out=Object.keys(map).map(function(k){return map[k]}).sort(function(a,b){return a.y-b.y||a.id.localeCompare(b.id)});
+      update();
+      var by={};out.forEach(function(r){by[r.y]=(by[r.y]||0)+1});
+      $('dlOut').innerHTML='<p><b>'+out.length+'</b> homes in the file'+(existing.length&&$('merge').checked?' ('+existing.length+' were already on the site)':'')+
+        (miss?'. <span class="bad">'+miss+' not placed yet.</span>':'')+'</p><p>'+Object.keys(by).sort().map(function(y){return y+': '+by[y]}).join(' &middot; ')+'</p>';
+    });
+  }
+  $('dl').addEventListener('click',function(){
+    var blob=new Blob([JSON.stringify({updated:new Date().toISOString().slice(0,10),count:out.length,records:out})],{type:'application/json'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sales.json';document.body.appendChild(a);a.click();a.remove();
+  });
+  function update(){
+    $('geo').disabled=!(rows.length&&geocoder);
+    $('dl').disabled=!out.length;
+  }
+  fetch('../data/sales.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null}).then(function(d){if(d&&d.records)existing=d.records}).catch(function(){});
+  loadGoogle();
+})();
+</script>
+</body>
+</html>
