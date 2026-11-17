@@ -232,7 +232,7 @@ summary{cursor:pointer;font-weight:600;font-size:15px}
   <section id="s1" aria-labelledby="introh">
     <div class="intro">
       <h1 id="introh">Start with where you stand.</h1>
-      <p>Seven quick questions. Skip any you like, or skip them all. Your answers tailor the sections that follow.</p>
+      <p>Eight quick questions. Skip any you like, or skip them all. Your answers tailor the sections that follow.</p>
       <p style="margin-top:16px"><button type="button" class="btn ghost small" id="skipAll">Skip the questions</button></p>
     </div>
     <div class="intake">
@@ -437,6 +437,7 @@ function maxPriceFor(D,inv){
   if(D<300000) return 1499999;
   return D/0.2;
 }
+function lttRefundOK(S){return S.fthb==='yes'&&S.everOwned==='no'}
 function model(S,M){
   const inv=M.view==='invest', condo=M.type==='condo', P=M.price;
   const minDown=minDownFor(P,inv);
@@ -449,7 +450,7 @@ function model(S,M){
   const pst=prem*0.08;
   const loan=P-down+prem;
   const lt=ltt(P), ltBoth=lt*(M.loc?2:1);
-  const rebate=(!inv&&S.fthb==='yes')?Math.min(lt,4000)+(M.loc?Math.min(lt,4475):0):0;
+  const rebate=(!inv&&lttRefundOK(S))?Math.min(lt,4000)+(M.loc?Math.min(lt,4475):0):0;
   const closing=ltBoth-rebate+3500+pst;
   const cashInv=down+closing;
   const i=Math.pow(1+M.rate/200,1/6)-1, n=amort*12;
@@ -516,7 +517,7 @@ const BANDS=[
  {id:'b1',label:'Under $50K',val:35000},{id:'b2',label:'$50K to $100K',val:75000},
  {id:'b3',label:'$100K to $200K',val:150000},{id:'b4',label:'$200K to $300K',val:250000},{id:'b5',label:'$300K or more',val:350000}];
 const LOOK=['Just starting','Under 3 months','3 to 6 months','6 to 12 months','Over a year'];
-const S={fthb:null,purpose:null,sell:null,down:0,band:null,gift:null,giftAmt:0,looking:null,seen:null,where:'',like:'',dislike:'',when:null,precon:null,areas:[],done:false};
+const S={fthb:null,everOwned:null,purpose:null,sell:null,down:0,band:null,gift:null,giftAmt:0,looking:null,seen:null,where:'',like:'',dislike:'',when:null,precon:null,areas:[],done:false};
 let step=0;
 const app=$('#app');
 
@@ -525,7 +526,7 @@ const yn=(g,cur,extra)=>`<div class="chips">${chip(g,'yes','Yes',cur==='yes')}${
 
 function canContinue(s){
   switch(s){
-    case 0:return !!S.fthb;
+    case 0:return S.fthb==='no'||(S.fthb==='yes'&&!!S.everOwned);
     case 1:return !!S.purpose;
     case 2:return S.down>0&&!!S.gift&&(S.gift==='no'||(S.giftAmt>0&&S.giftAmt<=S.down));
     case 3:return !!S.sell;
@@ -540,7 +541,9 @@ function canContinue(s){
 function stepHTML(s){
   if(s===0) return `<h2 id="qh" tabindex="-1">Are you a first-time home buyer?</h2>
     <p class="hint">Generally this means you have not lived in a home you owned during the last four years. It unlocks tax rebates and savings accounts covered in part three.</p>
-    ${yn('fthb',S.fthb)}`;
+    ${yn('fthb',S.fthb)}${S.fthb==='yes'?`<h3>Have you ever owned a home, or part of one, anywhere in the world?</h3>
+    <p class="hint">Ontario and Toronto use a stricter, lifetime test for their land transfer tax refunds. Your spouse must also not have owned a home while married to you.</p>
+    <div class="chips">${chip('own','yes','Yes, at some point',S.everOwned==='yes')}${chip('own','no','No, never',S.everOwned==='no')}</div>`:''}`;
   if(s===1) return `<h2 id="qh" tabindex="-1">Is this for personal use or investment?</h2>
     <p class="hint">Investment properties follow different mortgage rules and are judged on cash flow, so part three changes with this answer.</p>
     <div class="chips">${chip('purpose','personal','Personal use, I will live in it',S.purpose==='personal')}${chip('purpose','investment','Investment, I will rent it out',S.purpose==='investment')}</div>`;
@@ -613,7 +616,7 @@ function whenText(){
 }
 function answers(){
   return [
-    ['First-time buyer',S.fthb?(S.fthb==='yes'?'Yes':'No'):''],
+    ['First-time buyer',S.fthb?(S.fthb==='yes'?'Yes'+(S.everOwned==='yes'?', but has owned before':S.everOwned==='no'?', never owned':''):'No'):''],
     ['Purpose',S.purpose?(S.purpose==='personal'?'Personal use':'Investment'):''],
     ['Down payment',downText()],
     ['Current home',S.sell?(S.sell==='yes'?'Need to sell first':S.sell==='no'?'No need to sell':'Do not own a home'):''],
@@ -631,7 +634,7 @@ function ledger(){
 }
 
 function clearStep(s){
-  if(s===0)S.fthb=null;
+  if(s===0){S.fthb=null;S.everOwned=null}
   if(s===1)S.purpose=null;
   if(s===2){S.down=0;S.band=null;S.gift=null;S.giftAmt=0}
   if(s===3)S.sell=null;
@@ -658,8 +661,9 @@ app.addEventListener('click',e=>{
   }
   const c=e.target.closest('[data-g]');
   if(!c) return;
-  const g=c.dataset.g, v=c.dataset.v, auto={fthb:1,purpose:1,sell:1,looking:1};
-  if(g==='fthb')S.fthb=v;
+  const g=c.dataset.g, v=c.dataset.v, auto={fthb:1,own:1,purpose:1,sell:1,looking:1};
+  if(g==='fthb'){S.fthb=v;if(v==='no')S.everOwned=null}
+  else if(g==='own')S.everOwned=v;
   else if(g==='purpose')S.purpose=v;
   else if(g==='sell')S.sell=v;
   else if(g==='looking')S.looking=v;
@@ -721,7 +725,7 @@ function readsHTML(){
   const raw=areaPrice(M.type), tl=M.type==='condo'?'condo apartment':'home (all types)';
   const items=[];
   items.push(`<li><b>What your down payment covers</b><span>${inv?'Investment properties need at least 20% down, so ':'Under the minimum down payment rules, '}${fm(M.down)} supports a purchase up to about ${fm(maxP)}${!inv&&maxP>=1499999?' (insured mortgages stop at $1.5 million)':''}. The average ${tl} in ${S.areas.length?esc(areaNames().join(', ')):'the GTA'} is about ${fm(raw)}${raw>maxP?', so budget is the main constraint right now':''}. Lenders also test your income at a higher rate, so a pre-approval gives the real ceiling.</span></li>`);
-  if(S.fthb==='yes'&&!inv) items.push(`<li><b>First-time buyer programs</b><span>The land transfer tax refunds are built into the numbers below. The FHSA, the Home Buyers' Plan and the other programs are listed in part 3.</span></li>`);
+  if(S.fthb==='yes'&&!inv) items.push(lttRefundOK(S)?`<li><b>First-time buyer programs</b><span>The land transfer tax refunds are built into the numbers below. The FHSA, the Home Buyers' Plan and the other programs are listed in part 3.</span></li>`:`<li><b>First-time buyer programs</b><span>You pass the federal four-year test, so the FHSA, the Home Buyers' Plan and the other federal programs in part 3 are open to you. Because you have owned a home before, you do not qualify for the Ontario or Toronto land transfer tax refunds, so the numbers below include the full tax.</span></li>`);
   if(S.gift==='yes'&&S.giftAmt) items.push(`<li><b>Your ${fm(S.giftAmt)} gift</b><span>Get the gift letter signed early. The lender will want it, along with proof the money is in your account, before they approve the mortgage.</span></li>`);
   if(S.sell==='yes') items.push(`<li><b>Selling your current home</b><span>The numbers below assume the money for your down payment is in hand. If it comes from the sale, timing matters: see parts 8 and 9 for conditions and closing dates, and ask your lender about bridge financing.</span></li>`);
   if(S.when==='lt1') items.push(`<li><b>Buying within a year</b><span>Resale fits your timeline. Get a pre-approval now so you can move when the right home appears, since rates are held for a period of time once approved.</span></li>`);
@@ -817,8 +821,8 @@ function fit(k){
     if(S.when==='gt1'&&pre==='unsure') return 'maybe';
     return '';
   }
-  if(k==='ltt'){ if(inv) return 'no'; if(f===null) return ''; return f==='yes'?'maybe':'no'; }
-  if(k==='mltt'){ if(inv) return 'no'; if(has&&!tor) return 'no'; if(f===null||!has) return ''; return f==='yes'?'maybe':'no'; }
+  if(k==='ltt'){ if(inv) return 'no'; if(f===null) return ''; return lttRefundOK(S)?'yes':'no'; }
+  if(k==='mltt'){ if(inv) return 'no'; if(has&&!tor) return 'no'; if(f===null||!has) return ''; return lttRefundOK(S)?'yes':'no'; }
   if(k==='amort30'){ if(inv) return 'no'; if(f===null&&pre===null) return ''; return (f==='yes'||pre==='yes')?'yes':'maybe'; }
   if(k==='eco'){ return pre==='yes'?'yes':''; }
   return '';
@@ -847,7 +851,7 @@ function incentivesHTML(){
      bullets:["The money must sit in the RRSP for at least 90 days in a row before you withdraw it. Withdrawing sooner disallows the tax deduction.","You repay it over 15 years, starting the second year after the withdrawal.","Any yearly repayment you miss is added to your income for that year."]}
   ];
   const tax=[
-    {k:'hst',title:"New-build tax rebates: Ontario HST relief and the federal GST rebate (Bill C-4)",value:"Ontario relief up to $130,000, plus up to $50,000 federal for first-time buyers",
+    {k:'hst',title:"New-build tax rebates: Ontario HST relief and the federal GST rebate (Bill C-4)",value:"Up to $130,000 of HST back in total, of which up to $50,000 is the federal rebate for first-time buyers",
      lede:"Two programs return tax on a newly built home. Ontario's expanded 2026 relief covers all eligible buyers. The federal GST rebate under Bill C-4 is for first-time buyers only. Neither applies to resale homes, which carry no GST or HST.",
      bullets:["<b>Ontario HST relief (2026):</b> on homes up to $1,000,000 the full 13% HST comes back, up to $130,000. From $1,000,000 to $1,500,000 the maximum stays at $130,000. It then shrinks to the older $24,000 provincial rebate by $1,850,000.","<b>Ontario HST relief, who and when:</b> your agreement with the builder must be signed between April 1, 2026 and March 31, 2027. The home must be your primary residence or a qualifying rental. Construction must start before 2029 and be substantially complete before 2032. Ontario's Bill 114 became law on May 12, 2026, and the relief applies back to April 1, 2026.","<b>Federal GST rebate (Bill C-4):</b> the full 5% GST on homes up to $1,000,000, shrinking in a straight line to zero at $1,500,000. That is up to $50,000, once in your lifetime.","<b>Federal GST rebate, who and when:</b> you must be 18 or older, a Canadian citizen or permanent resident, and not have lived in a home you or your spouse owned, anywhere in the world, in the current year or the four years before. It covers agreements signed with a builder from March 20, 2025 to before 2031, with construction finishing before 2036. For owner-built homes, construction must start on or after March 20, 2025 and before 2031. Bill C-4 became law on March 12, 2026 and the CRA portal opened on March 17, 2026.","<b>How they combine:</b> the Ontario figure of up to $130,000 already includes help with the federal 5%, so the two do not simply add. Ask your lawyer or builder how your closing statement combines them. A first-time buyer who also qualifies for Ontario's first-time buyer rebate gets the greater of that rebate and the HST relief, not both.","<b>Getting the money:</b> the builder can credit the rebates against your price on closing day, or you can claim them from the CRA, the federal GST rebate within two years of taking possession. A credit at closing is not guaranteed. If the builder does not credit the HST, you may have to pay it and claim it later, which can take months. Some contracts make you liable if a rebate is denied or delayed, so have your lawyer read that clause. Make sure your agreement spells out both rebates.","Some CRA forms for the Ontario relief were still being released in mid-2026, so ask your builder how it is being handled. Details come from public law-firm and industry summaries, so confirm them with your lawyer or builder: "+lk('https://www.airdberlis.com/insights/publications/publication/2026-ontario-budget--enhanced-hst-relief-on-new-homes','Aird Berlis')+", "+lk('https://www.pwc.com/ca/en/services/tax/publications/tax-insights/enhanced-hst-relief-sale-new-homes-ontario-2026.html','PwC')+", "+lk('https://buildersontario.com/ontario-new-home-hst/','Builders Ontario')+"."]},
     {k:'hbtc',title:"First-Time Home Buyers' Tax Credit",value:"$1,500 off your federal tax",
@@ -919,7 +923,7 @@ function incentivesHTML(){
     <div><span>Home Buyers' Tax Credit</span><span class="pos">$1,500</span></div>
     <div><span>CMHC Eco Plus refund (25% of the premium)</span><span class="pos">$7,053.75</span></div>
     <div class="tot"><span>Total relief</span><span>$84,053.75</span></div></div>
-    <p class="fine">This example uses the older $24,000 Ontario rebate. The expanded 2026 rebate above could return the whole $123,500 of HST on a home this price, so the real total could be higher.</p></article>`;
+    <p class="fine">This example uses the older $24,000 Ontario rebate, so the two tax rebates return $71,500. For an agreement signed between April 1, 2026 and March 31, 2027, the expanded relief would bring the federal and Ontario rebates together to the full $123,500 of HST on a home this price. That is $52,000 more, for total relief of about $136,054. Do not add the $123,500 on top of the $47,500 federal rebate, because it already includes it.</p></article>`;
   const ck=ckLoad(); let n=0;
   const phase=(t,items)=>`<article class="pc"><div class="pt"><h4>${t}</h4></div><ul class="ck">${items.map(i=>{n++;const id='ck'+n;return `<li><label for="${id}"><input type="checkbox" id="${id}" data-ck="${id}" ${ck[id]?'checked':''}><span>${i}</span></label></li>`}).join('')}</ul></article>`;
   const checklist=`<div class="pg">
@@ -937,7 +941,7 @@ function incentivesHTML(){
     <li><b>Closed</b><span>CMHC First-Time Home Buyer Incentive. It gave a 5% or 10% shared-equity loan in exchange for a share of your home's price growth. It stopped taking applications on March 21, 2024, with final approvals on March 31, 2024.</span></li>
     <li><b>Cancelled</b><span>Canada Greener Homes Grant. Closed to new applicants in Budget 2025.</span></li>
     <li><b>Cancelled</b><span>Canada Secondary Suite Loan Program. Ended in Budget 2025.</span></li></ul>`;
-  return `<div class="note" style="margin:0 0 32px;max-width:78ch"><strong>The short version.</strong> One buyer can pull up to $100,000 of tax-sheltered savings into a down payment ($40,000 from the FHSA plus $60,000 through the HBP), and a couple up to $200,000. Open the FHSA first and fill it before using the RRSP, since the FHSA has no repayment. On a new build, federal and Ontario programs together can return up to $130,000 of HST, and the federal GST piece alone is up to $50,000. Ontario and Toronto refund up to $8,475 of land transfer tax.</div>
+  return `<div class="note" style="margin:0 0 32px;max-width:78ch"><strong>The short version.</strong> One buyer can pull up to $100,000 of tax-sheltered savings into a down payment ($40,000 from the FHSA plus $60,000 through the HBP), and a couple up to $200,000. Open the FHSA first and fill it before using the RRSP, since the FHSA has no repayment. On a new build, federal and Ontario programs together can return up to $130,000 of HST in total, not $130,000 plus $50,000. The federal GST rebate for first-time buyers makes up as much as $50,000 of that. Ontario and Toronto refund up to $8,475 of land transfer tax.</div>
     ${igrp('Build your down payment','Two federal accounts that can be used on the same purchase.',`<div class="pg">${savings.map(prog).join('')}</div>`)}
     ${igrp('Tax back at closing and tax time','Refunds and credits that lower what buying costs.',`<div class="pg">${tax.map(prog).join('')}</div>${provs}`)}
     ${igrp('Mortgage rules that shape your budget','Not incentives, but they decide how much you can borrow and how much cash you need.',`<div class="pg">${rules.map(prog).join('')}</div>`)}
@@ -1200,7 +1204,7 @@ function buildClose(){
     <p class="fine">Go to the inspection yourself and ask questions. For a condo, the status certificate and reserve fund study tell you about the building, which an inspection of the unit cannot.</p>`;
   const title=`<article class="pc"><div class="pt"><h4>Title insurance</h4></div><p class="pv">One-time premium, usually a few hundred dollars</p><p>It protects you and your lender against problems with who owns the property or what is registered against it.</p><details><summary>The details</summary>${ul(['It can cover unknown title defects, existing liens such as unpaid taxes or condo charges, errors in public records, survey problems and title fraud.','It does not cover defects you already knew about, environmental problems, work done without permits, or physical defects, which belong to the inspection.','Most lenders accept it in place of a new survey. A problem that only a new survey would have found is not covered.','The buyer pays the premium. Your lawyer arranges it and will tell you the exact price.'])}</details></article>`;
   const lt=ltt(M.price), ltB=lt*(M.loc?2:1);
-  const reb=(S.fthb==='yes')?Math.min(lt,4000)+(M.loc?Math.min(lt,4475):0):0;
+  const reb=lttRefundOK(S)?Math.min(lt,4000)+(M.loc?Math.min(lt,4475):0):0;
   const tot=ltB-reb+CL.legal+CL.title+CL.insp+CL.adj;
   $('#closeCards').innerHTML=`<div class="card panel" style="margin-top:0"><h3 style="font-size:20px;margin-bottom:8px">The weeks between offer and closing</h3>${steps}</div>
     <div class="card panel" style="margin-top:16px"><h3 style="font-size:20px;margin-bottom:8px">What an inspection covers, and what it does not</h3>${insp}</div>
@@ -1216,7 +1220,7 @@ function buildClose(){
 function updateClose(){
   const box=$('#clOut'); if(!box||!M) return;
   const lt=ltt(M.price), ltB=lt*(M.loc?2:1);
-  const reb=(S.fthb==='yes')?Math.min(lt,4000)+(M.loc?Math.min(lt,4475):0):0;
+  const reb=lttRefundOK(S)?Math.min(lt,4000)+(M.loc?Math.min(lt,4475):0):0;
   const tot=ltB-reb+CL.legal+CL.title+CL.insp+CL.adj;
   const prem=(M.view==='own')?model(S,M).pst:0;
   box.innerHTML=`<div class="card"><div class="rows"><div><span>Land transfer tax${M.loc?' (Ontario and Toronto)':''}</span><span>${fm(ltB)}</span></div>
