@@ -4,9 +4,9 @@ Static site for GitHub Pages. No build step.
 
 | File | What it is |
 |---|---|
-| `index.html` | The guide. Part 11 links to the two tools below. |
-| `neighbourhood-map.html` | Restaurants, schools and parks near an address (Google Maps). Needs an API key. |
-| `school-boundaries.html` | TDSB / TCDSB boundary viewer (Leaflet + OpenStreetMap, data embedded, no key). About 7 MB. |
+| `index.html` | The guide: an intake questionnaire (part 1) and ten parts with calculators. Part 6 embeds the two tools below as tabs ("Nearby places" and "School boundaries"), with an "Open full screen" link to each. |
+| `neighbourhood-map.html` | Restaurants, schools and parks near an address (Google Maps). Needs an API key. Accepts `?embed=1&address=...` when loaded inside the guide. |
+| `school-boundaries.html` | TDSB / TCDSB boundary viewer (Leaflet + OpenStreetMap, data embedded, no key). About 7 MB, so the guide only loads it when someone opens the School boundaries tab. |
 | `config.js` | Where the Google Maps API key goes. |
 
 ## Add the Google Maps API key
@@ -19,6 +19,15 @@ If `config.js` is left blank, the map page asks the visitor for a key and stores
 
 ## Publish
 Repo **Settings → Pages → Deploy from a branch**, pick the branch and `/ (root)`.
+
+## Keeping figures current
+These are hard-coded in `index.html` and go stale. Check them monthly:
+- Market data: the `AREAS` / `GTA` constants and `SRC_TRREB` (TRREB Market Watch).
+- Mortgage rate: the `rate:4.34` default and the Ratehub note beside the rate input.
+- Program dates and limits in part 3 (HST/GST rebates, Home Renovation Savings Program end date, municipal down payment programs).
+
+## How the calculators treat first-time buyers
+Question 1 asks the federal four-year test. A "yes" opens a follow-up asking whether the buyer has ever owned a home anywhere, because the Ontario and Toronto land transfer tax refunds use a lifetime test. The refunds are only applied in parts 4 and 10 when the buyer answers "No, never" (`lttRefundOK` in `index.html`).
 
 ## Notes
 - `school-boundaries.html` uses OpenStreetMap's public tile server, which is fine for light use; switch to a tile provider if traffic grows.
