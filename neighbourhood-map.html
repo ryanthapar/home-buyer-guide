@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neighbourhood Map | The Thapar Team</title>
+<style>
+  :root { --ink:#1b2430; --muted:#6b7684; --line:#e3e7ec; --bg:#f6f7f9; --accent:#16324f; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--ink); background:var(--bg); height:100vh; display:flex; flex-direction:column; }
+  header { background:var(--accent); color:#fff; padding:12px 16px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+  header h1 { font-size:16px; margin:0 12px 0 0; font-weight:650; align-self:center; letter-spacing:.2px; }
+  .field { display:flex; flex-direction:column; gap:3px; font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:#c8d3df; }
+  .field input, .field select { font-size:14px; padding:7px 9px; border-radius:6px; border:1px solid #2f4d6b; background:#fff; color:var(--ink); }
+  #address { min-width:300px; }
+  button { font-size:14px; padding:8px 14px; border-radius:6px; border:0; cursor:pointer; font-weight:600; }
+  .primary { background:#f2b632; color:#2a1f00; }
+  .ghost { background:transparent; color:#fff; border:1px solid #4b6b8b; }
+  .back { color:#c8d3df; font-size:13px; text-decoration:none; align-self:center; } .back:hover { color:#fff; text-decoration:underline; }
+  .checks { display:flex; gap:12px; align-items:center; font-size:13px; color:#fff; padding-bottom:7px; }
+  .checks label { display:flex; gap:5px; align-items:center; cursor:pointer; }
+  main { flex:1; display:flex; min-height:0; }
+  #panel { width:380px; overflow-y:auto; background:#fff; border-right:1px solid var(--line); }
+  #map { flex:1; min-width:0; }
+  .sec h2 { margin:0; padding:12px 16px 6px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; display:flex; align-items:center; gap:8px; }
+  .dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .item { display:flex; gap:10px; padding:9px 16px; border-top:1px solid var(--line); cursor:pointer; }
+  .item:hover { background:#f2f5f9; }
+  .num { flex:none; width:22px; height:22px; border-radius:50%; color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-top:1px; }
+  .name { font-weight:600; font-size:14px; line-height:1.25; }
+  .meta { font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .star { color:#e8a100; }
+  .empty { padding:10px 16px 14px; color:var(--muted); font-size:13px; }
+  #status { padding:18px 16px; color:var(--muted); font-size:14px; line-height:1.5; }
+  #status.err { color:#b42318; }
+  .gm-info { font-family:system-ui,sans-serif; max-width:230px; }
+  .gm-info b { font-size:14px; }
+  .gm-info div { font-size:12.5px; color:#555; margin-top:3px; }
+  /* Presentation mode: clean frame for screenshots */
+  body.present header .field, body.present header .checks, body.present header .primary, body.present header #btn-static { display:none; }
+  body.present #panel { width:400px; }
+  #keybox { position:fixed; inset:0; background:rgba(15,25,40,.6); display:none; align-items:center; justify-content:center; z-index:10; }
+  #keybox .card { background:#fff; border-radius:10px; padding:22px; width:min(480px, 92vw); }
+  #keybox h3 { margin:0 0 8px; }
+  #keybox p { font-size:13px; color:var(--muted); line-height:1.5; margin:0 0 12px; }
+  #keybox input { width:100%; font-size:14px; padding:9px; border:1px solid var(--line); border-radius:6px; margin-bottom:12px; }
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html#s10">&larr; Home Buyer Guide</a>
+  <h1>Neighbourhood Map</h1>
+  <label class="field">Property address
+    <input id="address" type="text" placeholder="e.g. 123 Main St, Etobicoke, ON" autocomplete="off">
+  </label>
+  <label class="field">Radius
+    <select id="radius">
+      <option value="500">500 m</option>
+      <option value="1000" selected>1 km</option>
+      <option value="1500">1.5 km</option>
+      <option value="2000">2 km</option>
+      <option value="3000">3 km</option>
+    </select>
+  </label>
+  <label class="field">Rank by
+    <select id="sort">
+      <option value="rating">Top rated</option>
+      <option value="reviews">Most reviewed</option>
+      <option value="distance">Closest</option>
+    </select>
+  </label>
+  <label class="field">Min reviews
+    <select id="minrev">
+      <option value="0">Any</option>
+      <option value="10">10+</option>
+      <option value="25" selected>25+</option>
+      <option value="100">100+</option>
+    </select>
+  </label>
+  <div class="checks">
+    <label><input type="checkbox" class="cat" value="restaurants" checked> Restaurants</label>
+    <label><input type="checkbox" class="cat" value="schools" checked> Schools</label>
+    <label><input type="checkbox" class="cat" value="parks" checked> Parks</label>
+  </div>
+  <button class="primary" id="go">Show map</button>
+  <button class="ghost" id="btn-present" title="Hide the controls so you can screenshot a clean map">Presentation view</button>
+  <button class="ghost" id="btn-static" title="Opens a 1280x720 map image you can save and drop into a slide">Slide image</button>
+  <button class="ghost" id="btn-key" title="Change Google API key">API key</button>
+</header>
+<main>
+  <aside id="panel"><div id="status">Enter a property address and press <b>Show map</b>. You'll get the most popular restaurants, nearby schools and parks, each with Google rating and review count.</div></aside>
+  <div id="map"></div>
+</main>
+
+<div id="keybox">
+  <div class="card">
+    <h3>Google Maps API key</h3>
+    <p>Paste a Google Cloud API key with <b>Maps JavaScript API</b>, <b>Places API (New)</b>, <b>Geocoding API</b> and <b>Maps Static API</b> enabled. It is stored only in this browser. (The site owner can instead set it once in config.js.) Restrict the key to your website address in Google Cloud so it can't be misused.</p>
+    <input id="keyinput" type="text" placeholder="AIza..." autocomplete="off">
+    <button class="primary" id="keysave">Save and continue</button>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  var CATS = {
+    restaurants: { label: 'Restaurants', color: '#E8590C', types: ['restaurant'], n: 8 },
+    schools:     { label: 'Schools',     color: '#1C7ED6', types: ['school', 'primary_school', 'secondary_school'], n: 6 },
+    parks:       { label: 'Parks',       color: '#2F9E44', types: ['park'], n: 6 }
+  };
+  var $ = function (id) { return document.getElementById(id); };
+  var apiKey = '', mapReady = null, map, geocoder, infoWindow, overlays = [], last = null;
+
+  var params = new URLSearchParams(location.search);
+  try { apiKey = window.GOOGLE_MAPS_API_KEY || localStorage.getItem('gmaps_key') || ''; } catch (e) { apiKey = window.GOOGLE_MAPS_API_KEY || ''; }
+  var keyFromConfig = !!window.GOOGLE_MAPS_API_KEY;
+  if (keyFromConfig) $('btn-key').style.display = 'none';
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+  function setStatus(msg, isErr) { var el = $('panel'); el.innerHTML = '<div id="status" class="' + (isErr ? 'err' : '') + '">' + msg + '</div>'; }
+
+  function showKeyBox() { $('keyinput').value = apiKey; $('keybox').style.display = 'flex'; }
+  $('btn-key').onclick = showKeyBox;
+  $('keysave').onclick = function () {
+    var v = $('keyinput').value.trim();
+    if (!v) return;
+    apiKey = v;
+    try { localStorage.setItem('gmaps_key', v); } catch (e) {}
+    $('keybox').style.display = 'none';
+    if (mapReady) { location.reload(); }
+  };
+
+  function loadMaps() {
+    if (mapReady) return mapReady;
+    mapReady = new Promise(function (resolve, reject) {
+      window.__gmReady = function () { resolve(); };
+      window.gm_authFailure = function () { setStatus('Google rejected the API key. Check that it is correct, that billing is on, and that the key allows this website address.', true); };
+      var s = document.createElement('script');
+      s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(apiKey) + '&v=weekly&loading=async&libraries=places,marker,geocoding&callback=__gmReady';
+      s.onerror = function () { reject(new Error('Could not load Google Maps. Check your internet connection.')); };
+      document.head.appendChild(s);
+    }).then(function () {
+      return Promise.all([google.maps.importLibrary('maps'), google.maps.importLibrary('places'), google.maps.importLibrary('marker'), google.maps.importLibrary('geocoding')]);
+    }).then(function () {
+      map = new google.maps.Map($('map'), { center: { lat: 43.65, lng: -79.38 }, zoom: 12, mapId: 'DEMO_MAP_ID', mapTypeControl: false, streetViewControl: false, fullscreenControl: false });
+      geocoder = new google.maps.Geocoder();
+      infoWindow = new google.maps.InfoWindow();
+    });
+    return mapReady;
+  }
+
+  function distM(a, b) {
+    var R = 6371000, toR = Math.PI / 180;
+    var dLat = (b.lat - a.lat) * toR, dLng = (b.lng - a.lng) * toR;
+    var x = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * toR) * Math.cos(b.lat * toR) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.asin(Math.sqrt(x));
+  }
+  function fmtDist(m) { return m < 1000 ? Math.round(m / 10) * 10 + ' m' : (m / 1000).toFixed(1) + ' km'; }
+  function price(p) { return ({ PRICE_LEVEL_INEXPENSIVE: '$', PRICE_LEVEL_MODERATE: '$$', PRICE_LEVEL_EXPENSIVE: '$$$', PRICE_LEVEL_VERY_EXPENSIVE: '$$$$' })[p] || ''; }
+
+  function clearOverlays() { overlays.forEach(function (o) { if (o.setMap) o.setMap(null); else o.map = null; }); overlays = []; }
+
+  function searchCat(key, center, radius) {
+    var cfg = CATS[key];
+    return google.maps.places.Place.searchNearby({
+      fields: ['id', 'displayName', 'location', 'rating', 'userRatingCount', 'priceLevel', 'googleMapsURI', 'formattedAddress', 'primaryTypeDisplayName'],
+      locationRestriction: { center: center, radius: radius },
+      includedPrimaryTypes: cfg.types,
+      maxResultCount: 20,
+      rankPreference: google.maps.places.SearchNearbyRankPreference.POPULARITY
+    }).then(function (res) {
+      var seen = {}, out = [];
+      (res.places || []).forEach(function (p) {
+        if (seen[p.id]) return; seen[p.id] = 1;
+        var loc = { lat: p.location.lat(), lng: p.location.lng() };
+        out.push({ id: p.id, name: p.displayName, loc: loc, rating: p.rating, count: p.userRatingCount || 0, price: price(p.priceLevel), url: p.googleMapsURI, addr: p.formattedAddress, kind: p.primaryTypeDisplayName, dist: distM(center, loc) });
+      });
+      return out;
+    });
+  }
+
+  function rank(list, sort, minrev) {
+    var l = list.filter(function (p) { return p.count >= minrev; });
+    l.sort(function (a, b) {
+      if (sort === 'distance') return a.dist - b.dist;
+      if (sort === 'reviews') return b.count - a.count;
+      return ((b.rating || 0) - (a.rating || 0)) || (b.count - a.count);
+    });
+    return l;
+  }
+
+  function run() {
+    var addr = $('address').value.trim();
+    if (!addr) { setStatus('Please enter an address.', true); return; }
+    if (!apiKey) { showKeyBox(); return; }
+    var cats = Array.prototype.filter.call(document.querySelectorAll('.cat'), function (c) { return c.checked; }).map(function (c) { return c.value; });
+    if (!cats.length) { setStatus('Pick at least one category.', true); return; }
+    var radius = +$('radius').value, sort = $('sort').value, minrev = +$('minrev').value;
+    setStatus('Searching…');
+    loadMaps().then(function () {
+      return geocoder.geocode({ address: addr, region: 'ca' });
+    }).then(function (g) {
+      if (!g.results || !g.results.length) throw new Error('Address not found. Try adding the city and province.');
+      var r = g.results[0], c = { lat: r.geometry.location.lat(), lng: r.geometry.location.lng() };
+      return Promise.all(cats.map(function (k) { return searchCat(k, c, radius); })).then(function (all) {
+        var data = {};
+        cats.forEach(function (k, i) { data[k] = rank(all[i], sort, k === 'schools' ? 0 : minrev).slice(0, CATS[k].n); });
+        render(r.formatted_address, c, radius, cats, data);
+      });
+    }).catch(function (e) {
+      var m = (e && e.message) || String(e);
+      if (/REQUEST_DENIED|not authorized|API.*not.*enabled|PERMISSION/i.test(m)) m += ' (Check that Places API (New) and Geocoding API are enabled for this key.)';
+      setStatus(esc(m), true);
+    });
+  }
+
+  function render(formatted, center, radius, cats, data) {
+    clearOverlays();
+    last = { formatted: formatted, center: center, cats: cats, data: data };
+    var circle = new google.maps.Circle({ map: map, center: center, radius: radius, strokeColor: '#16324f', strokeOpacity: .5, strokeWeight: 1.5, fillColor: '#16324f', fillOpacity: .05 });
+    overlays.push(circle);
+    var home = new google.maps.marker.PinElement({ background: '#111', borderColor: '#fff', glyphColor: '#fff', glyph: 'H', scale: 1.25 });
+    overlays.push(new google.maps.marker.AdvancedMarkerElement({ map: map, position: center, content: home.element, title: formatted, zIndex: 999 }));
+
+    var html = '<div class="sec"><h2 style="text-transform:none;font-size:14px;letter-spacing:0">' + esc(formatted) + '</h2></div>';
+    var markers = {};
+    cats.forEach(function (k) {
+      var cfg = CATS[k];
+      html += '<div class="sec"><h2><span class="dot" style="background:' + cfg.color + '"></span>' + cfg.label + '</h2>';
+      if (!data[k].length) html += '<div class="empty">None found that match the filters. Try a larger radius or fewer minimum reviews.</div>';
+      data[k].forEach(function (p, i) {
+        var stars = p.rating ? '<span class="star">★</span> ' + p.rating.toFixed(1) + ' (' + p.count.toLocaleString() + ')' : 'No rating yet';
+        html += '<div class="item" data-k="' + k + '" data-i="' + i + '"><div class="num" style="background:' + cfg.color + '">' + (i + 1) + '</div><div><div class="name">' + esc(p.name) + '</div><div class="meta">' + stars + (p.price ? ' · ' + p.price : '') + ' · ' + fmtDist(p.dist) + (p.kind ? ' · ' + esc(p.kind) : '') + '</div></div></div>';
+        var pin = new google.maps.marker.PinElement({ background: cfg.color, borderColor: '#fff', glyphColor: '#fff', glyph: String(i + 1) });
+        var m = new google.maps.marker.AdvancedMarkerElement({ map: map, position: p.loc, content: pin.element, title: p.name });
+        m.addListener('click', function () { openInfo(k, i, m); });
+        markers[k + i] = m;
+        overlays.push(m);
+      });
+      html += '</div>';
+    });
+    $('panel').innerHTML = html;
+    Array.prototype.forEach.call(document.querySelectorAll('.item'), function (el) {
+      el.onclick = function () { var k = el.dataset.k, i = +el.dataset.i; map.panTo(data[k][i].loc); openInfo(k, i, markers[k + i]); };
+    });
+    function openInfo(k, i, m) {
+      var p = data[k][i];
+      infoWindow.setContent('<div class="gm-info"><b>' + esc(p.name) + '</b><div>' + (p.rating ? '★ ' + p.rating.toFixed(1) + ' (' + p.count.toLocaleString() + ' reviews)' : 'No rating yet') + (p.price ? ' · ' + p.price : '') + '</div><div>' + esc(p.addr || '') + '</div><div><a href="' + esc(p.url) + '" target="_blank" rel="noopener">Open in Google Maps</a></div></div>');
+      infoWindow.open({ map: map, anchor: m });
+    }
+    map.fitBounds(circle.getBounds(), 20);
+  }
+
+  function staticUrl() {
+    if (!last) return null;
+    var u = 'https://maps.googleapis.com/maps/api/staticmap?size=640x360&scale=2&maptype=roadmap';
+    u += '&markers=' + encodeURIComponent('color:black|label:H|' + last.center.lat + ',' + last.center.lng);
+    last.cats.forEach(function (k) {
+      last.data[k].forEach(function (p, i) {
+        u += '&markers=' + encodeURIComponent('color:0x' + CATS[k].color.slice(1) + '|label:' + (i + 1) + '|' + p.loc.lat + ',' + p.loc.lng);
+      });
+    });
+    return u + '&key=' + encodeURIComponent(apiKey);
+  }
+
+  $('go').onclick = run;
+  $('address').addEventListener('keydown', function (e) { if (e.key === 'Enter') run(); });
+  $('btn-present').onclick = function () {
+    document.body.classList.toggle('present');
+    $('btn-present').textContent = document.body.classList.contains('present') ? 'Exit presentation view' : 'Presentation view';
+    if (map) setTimeout(function () { google.maps.event.trigger(map, 'resize'); }, 50);
+  };
+  $('btn-static').onclick = function () {
+    var u = staticUrl();
+    if (!u) { setStatus('Run a search first, then press Slide image.', true); return; }
+    window.open(u, '_blank');
+  };
+  var pre = params.get('address');
+  if (pre) { $('address').value = pre; if (apiKey) run(); }
+  if (!apiKey) showKeyBox();
+})();
+</script>
+</body>
+</html>

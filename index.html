@@ -1,0 +1,1673 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Home Buyer Guide | The Thapar Team</title>
+<meta name="description" content="A step-by-step home buyer guide for Ontario, with calculators, a neighbourhood map and school boundary viewer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>
+/* Layout concept: one calm column. A question card on the left with a running answer ledger on the right,
+   then a calculator whose inputs sit beside a live verdict and chart. Deep lake-teal on green-grey neutrals. */
+:root{
+  --bg:#F1F5F3; --surface:#FFFFFF; --surface-2:#E6EEEB; --ink:#10201C; --ink-2:#475953; --line:#CBD7D2;
+  --accent:#0B6B66; --on-accent:#FFFFFF; --accent-soft:#D5EAE7;
+  --warn:#7A4800; --warn-soft:#F6E7C9; --bad:#A8312B; --good:#1A7342;
+  --chart-a:#0B6B66; --chart-b:#B2601A;
+  --display:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --text:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Spline Sans Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1513; --surface:#132220; --surface-2:#1A2D2A; --ink:#E6F0ED; --ink-2:#9DB2AC; --line:#27403B;
+    --accent:#4DC2B6; --on-accent:#06201D; --accent-soft:#17403C;
+    --warn:#E8B45E; --warn-soft:#3A2D12; --bad:#F2887F; --good:#5BCB8D;
+    --chart-a:#4DC2B6; --chart-b:#E8A46B; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1513; --surface:#132220; --surface-2:#1A2D2A; --ink:#E6F0ED; --ink-2:#9DB2AC; --line:#27403B;
+  --accent:#4DC2B6; --on-accent:#06201D; --accent-soft:#17403C;
+  --warn:#E8B45E; --warn-soft:#3A2D12; --bad:#F2887F; --good:#5BCB8D;
+  --chart-a:#4DC2B6; --chart-b:#E8A46B; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font:16px/1.55 var(--text);
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 72px;
+}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.12;letter-spacing:-.015em;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--accent)}
+.wrap{max-width:1080px;margin:0 auto}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h2[tabindex="-1"]:focus{outline:none}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 0;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.01em}
+.brand small{font:500 12px var(--text);color:var(--ink-2);margin-left:10px;letter-spacing:.06em;text-transform:uppercase}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{font:600 14px var(--text);background:transparent;color:var(--ink-2);border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer}
+.tab[aria-current="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab[disabled]{opacity:.5;cursor:not-allowed}
+
+.intro{padding:20px 0 28px;max-width:62ch}
+.intro h1{font-size:clamp(32px,5.4vw,52px);margin-bottom:12px}
+.intro p{color:var(--ink-2);font-size:18px}
+
+.intake{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,3vw,32px)}
+.prog{display:flex;gap:5px;margin-bottom:12px}
+.seg{flex:1;height:6px;border-radius:3px;background:var(--surface-2)}
+.seg.on{background:var(--accent)}
+.stepno{font:500 12px var(--mono);letter-spacing:.04em;color:var(--ink-2);text-transform:uppercase;margin-bottom:20px}
+.q h2{font-size:clamp(24px,3.6vw,34px);margin-bottom:8px}
+.q h3{font-size:clamp(19px,2.6vw,24px);margin:28px 0 8px}
+.hint{color:var(--ink-2);font-size:14.5px;margin-bottom:16px;max-width:60ch}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 4px}
+.chip{font:600 15px var(--text);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:11px 16px;min-height:46px;cursor:pointer;text-align:left}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.grp{margin-top:18px}
+.grp h4{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin:0 0 2px}
+.nav{display:flex;gap:10px;margin-top:32px;flex-wrap:wrap}
+.btn{font:700 15px var(--text);background:var(--accent);color:var(--on-accent);border:1.5px solid var(--accent);border-radius:10px;padding:12px 20px;min-height:46px;cursor:pointer}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.small{padding:8px 14px;min-height:38px;font-size:14px}
+
+.field{display:grid;gap:6px;margin-top:14px;min-width:0}
+.field label,.field .lab{font:600 13.5px var(--text);color:var(--ink)}
+.field .sub{font-weight:400;color:var(--ink-2)}
+input[type=text],input[type=number],select,textarea{
+  font:500 16px var(--text);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);
+  border-radius:8px;padding:10px 12px;width:100%;min-width:0
+}
+textarea{min-height:76px;resize:vertical}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.pre{display:flex;align-items:center;gap:0}
+.pre span{font:500 16px var(--mono);color:var(--ink-2);padding:10px 4px 10px 12px;border:1.5px solid var(--line);border-right:0;border-radius:8px 0 0 8px;background:var(--surface-2)}
+.pre input{border-radius:0 8px 8px 0}
+.note{background:var(--accent-soft);border-radius:10px;padding:12px 14px;font-size:15px;margin-top:16px}
+.note.warn{background:var(--warn-soft);color:var(--ink)}
+.note strong{font-weight:700}
+
+.ledger{position:sticky;top:calc(16px + env(safe-area-inset-top,0px));padding:20px}
+.ledger h3{font-size:16px;margin-bottom:12px}
+.ledger dl{margin:0;display:grid;gap:10px}
+.ledger dt{font:600 11.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
+.ledger dd{margin:0;font-size:15px;overflow-wrap:anywhere}
+.empty{color:var(--ink-2);font-size:14.5px}
+
+.tw{overflow-x:auto;margin-top:16px;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{padding:10px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{font:600 11.5px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);background:var(--surface-2)}
+tr:last-child td{border-bottom:0}
+tr.base td{color:var(--ink-2);background:var(--surface-2)}
+.fine{font-size:13px;color:var(--ink-2);margin-top:10px}
+
+.part{margin-top:72px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.sh{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.sh>div{max-width:64ch;min-width:0}
+.sh h2{font-size:clamp(30px,5vw,46px);margin-bottom:10px}
+.sh p:not(.eyebrow){color:var(--ink-2);font-size:17px}
+.ig{margin-bottom:40px}
+.ig>h3{font-size:clamp(22px,3vw,28px);margin-bottom:4px}
+.ig>.hint{margin-bottom:0}
+.pg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;margin-top:16px}
+.pc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.pt{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.pt h4{font:700 18px/1.2 var(--display);margin:0;letter-spacing:-.01em}
+.pv{font:600 14.5px/1.4 var(--mono);color:var(--accent);margin:0}
+.pc>p:not(.pv){font-size:15.5px}
+.pc details{margin-top:auto;padding-top:4px}
+.tag{font:600 11.5px var(--text);padding:4px 9px;border-radius:999px;white-space:nowrap;flex:none}
+.tag.yes{background:var(--accent-soft);color:var(--ink)}
+.tag.maybe{background:var(--warn-soft);color:var(--ink)}
+.tag.no{background:var(--surface-2);color:var(--ink-2)}
+.closed{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+.closed li{display:flex;gap:12px;align-items:baseline}
+.closed b{font:600 11.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--bad);flex:none;min-width:84px}
+.stack{display:grid;gap:16px;margin-bottom:24px}
+.reads{margin:0;padding:0;list-style:none;display:grid;gap:12px}
+.reads li{padding-left:0}
+.reads b{display:block;font-weight:700}
+.reads span{color:var(--ink-2);font-size:15px}
+.mk{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px 24px;margin:16px 0 0}
+.mk div{min-width:0}
+.mk dt{font:600 11.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
+.mk dd{margin:2px 0 0;font:600 22px var(--display);font-variant-numeric:tabular-nums}
+.mk dd small{font:500 13px var(--text);color:var(--ink-2)}
+.calc{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:24px;align-items:start}
+.calc form{padding:20px}
+.seg2{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+.seg2 button{flex:1;font:600 14px var(--text);background:var(--surface);color:var(--ink);border:0;padding:10px 8px;cursor:pointer;min-height:42px}
+.seg2 button+button{border-left:1.5px solid var(--line)}
+.seg2 button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rng{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.rng output{font:600 14px var(--mono);color:var(--accent)}
+.verdict{background:var(--accent-soft);border-radius:14px;padding:clamp(18px,3vw,28px)}
+.verdict h3{font-size:clamp(22px,3.2vw,30px);margin-bottom:8px}
+.verdict p{font-size:16.5px}
+.verdict p+p{margin-top:8px;color:var(--ink-2);font-size:15px}
+.panel{margin-top:16px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;margin-bottom:6px}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;margin-right:7px;vertical-align:middle}
+.chart svg{display:block;width:100%}
+.chart text{font:500 11px var(--mono);fill:var(--ink-2)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .hz{stroke:var(--ink-2);stroke-width:1;stroke-dasharray:4 4}
+.chart .la,.chart .lb{fill:none;stroke-width:2.75;stroke-linejoin:round;stroke-linecap:round}
+.chart .la{stroke:var(--chart-a)} .chart .lb{stroke:var(--chart-b)}
+.chart .da{fill:var(--chart-a)} .chart .db{fill:var(--chart-b)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:16px}
+.cols h4{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin:0 0 6px}
+.ck{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ck label{display:flex;gap:10px;align-items:flex-start;font-size:15px;cursor:pointer}
+.ck input{margin-top:4px;flex:none;accent-color:var(--accent)}
+.fine a,.list a{color:var(--accent)}
+.stg{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-top:12px}
+.stg>summary{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;cursor:pointer}
+.stg .sn{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;font:700 14px var(--mono)}
+.stg .sd{font-size:14px;color:var(--ink-2)}
+.stg .sb{padding:0 18px 18px 62px}
+@media (max-width:560px){.stg .sb{padding-left:18px}}
+@media (max-width:640px){.bgrid{grid-template-columns:1fr!important}}
+.rows{display:grid}
+.rows div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.rows div:last-child{border-bottom:0}
+.rows span:last-child{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+.rows .tot{font-weight:700}
+.pos{color:var(--good)} .neg{color:var(--bad)}
+details{margin-top:14px}
+summary{cursor:pointer;font-weight:600;font-size:15px}
+.list{margin:10px 0 0;padding-left:20px;display:grid;gap:8px}
+.share{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+#copied{font-size:14px;color:var(--ink-2)}
+#fallback{margin-top:12px;min-height:160px;font:400 13px var(--mono)}
+
+.three{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.pc2 h4{font:700 20px var(--display);margin:0 0 4px;text-transform:none;letter-spacing:-.01em;color:var(--ink)}
+.pc2 h5{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;margin:14px 0 6px}
+.pc2 h5.pro{color:var(--good)} .pc2 h5.con{color:var(--bad)}
+.pc2 ul{margin:0;padding-left:20px;display:grid;gap:7px;font-size:15px}
+@media (max-width:900px){
+  .intake{grid-template-columns:minmax(0,1fr)}
+  .ledger{position:static}
+  .calc{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:420px){.two{grid-template-columns:1fr}.chip{flex:1 1 auto}}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Home Buyer Guide<small>The Thapar Team</small></div>
+    <nav class="tabs" aria-label="Guide sections">
+      <button class="tab" type="button" data-go="s1" aria-current="true">1 · Your situation</button>
+      <button class="tab" type="button" data-go="sr" id="tabr">2 · Buying process</button>
+      <button class="tab" type="button" data-go="s2" id="tab2">3 · Incentives</button>
+      <button class="tab" type="button" data-go="s3" id="tab3">4 · Is it worth it?</button>
+      <button class="tab" type="button" data-go="s4" id="tab4">5 · Insured or not?</button>
+      <button class="tab" type="button" data-go="s5" id="tab5">6 · New or resale?</button>
+      <button class="tab" type="button" data-go="s6" id="tab6">7 · Pre-con roadmap</button>
+      <button class="tab" type="button" data-go="s7" id="tab7">8 · Making an offer</button>
+      <button class="tab" type="button" data-go="s8" id="tab8">9 · Offer to closing</button>
+      <button class="tab" type="button" data-go="s9" id="tab9">10 · Buyer agreement</button>
+      <button class="tab" type="button" data-go="s10" id="tab10">11 · Neighbourhood</button>
+    </nav>
+  </div>
+
+  <section id="s1" aria-labelledby="introh">
+    <div class="intro">
+      <h1 id="introh">Start with where you stand.</h1>
+      <p>Seven quick questions. Skip any you like, or skip them all. Your answers tailor the sections that follow.</p>
+      <p style="margin-top:16px"><button type="button" class="btn ghost small" id="skipAll">Skip the questions</button></p>
+    </div>
+    <div class="intake">
+      <div class="card" id="app"></div>
+      <aside class="card ledger" aria-label="Your answers so far">
+        <h3>Your answers</h3>
+        <div id="ledger"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="sr" class="part" aria-labelledby="srh">
+    <header class="sh">
+      <div>
+        <p class="eyebrow">Part 2</p>
+        <h2 id="srh" tabindex="-1">The home buying process</h2>
+        <p>Buying a home happens in six stages. Each one has a clear result, and the rest of this guide fills in the detail. Tick a stage when you have done it.</p>
+      </div>
+      <button type="button" class="btn ghost small" data-skip="s2">Skip to part 3</button>
+    </header>
+    <p id="mapNext" class="note" style="margin:0 0 16px;max-width:78ch" aria-live="polite"></p>
+    <div id="mapStages"></div>
+  </section>
+
+  <section id="s2" class="part" aria-labelledby="s2h">
+    <header class="sh">
+      <div>
+        <p class="eyebrow">Part 3</p>
+        <h2 id="s2h" tabindex="-1">What help is available right now?</h2>
+        <p>Federal, Ontario and Toronto programs from the 2025 to 2026 briefing. Cards tagged "Fits your answers" match what you told us. Open "The details" on any card for the rules.</p>
+      </div>
+      <button type="button" class="btn ghost small" data-skip="s3">Skip to part 4</button>
+    </header>
+    <div id="inc"></div>
+  </section>
+
+  <section id="s3" class="part" aria-labelledby="s3h">
+    <header class="sh">
+      <div>
+        <p class="eyebrow">Part 4</p>
+        <h2 id="s3h" tabindex="-1">Is it worth it to buy?</h2>
+        <p>Built from your answers. Every figure below is an assumption you can change, and the verdict updates as you do.</p>
+      </div>
+      <button type="button" class="btn ghost small" data-skip="s4">Skip to part 5</button>
+    </header>
+    <div class="stack">
+      <div class="card" id="reads"></div>
+      <div class="card" id="market"></div>
+    </div>
+    <div class="calc">
+      <form class="card" id="inputs" autocomplete="off"></form>
+      <div id="out" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="s4" class="part" aria-labelledby="s4h">
+    <header class="sh">
+      <div>
+        <p class="eyebrow">Part 5</p>
+        <h2 id="s4h" tabindex="-1">Insured or uninsured mortgage?</h2>
+        <p>The same home bought two ways: with the smallest down payment the rules allow and mortgage insurance, or with 20% down and no insurance. It uses the price, rate and assumptions from part 4, so change those there.</p>
+      </div>
+      <button type="button" class="btn ghost small" data-skip="s5">Skip to part 6</button>
+    </header>
+    <form id="insIn" class="card" autocomplete="off" style="margin-bottom:16px"></form>
+    <div id="insOut" aria-live="polite"></div>
+  </section>
+
+  <section id="s5" class="part" aria-labelledby="s5h">
+    <header class="sh">
+      <div>
+        <p class="eyebrow">Part 6</p>
+        <h2 id="s5h" tabindex="-1">New build or resale?</h2>
+        <p>A new build usually costs more to buy and less to run. A resale home is the reverse. This part compares the real cost of each, explains what you pay and risk while a new condo is being finished, and lists the Ontario warranty that protects you. It is based on a pre-construction briefing, which uses mostly US data, so the ownership-cost figures are examples to replace with your own.</p>
+      </div>
+      <button type="button" class="btn ghost small" data-skip="s6">Skip to part 7</button>
+    </header>
+    <div id="preTop"></div>
+    <form id="preIn" class="card" autocomplete="off" style="margin-top:16px"></form>
+    <form id="occIn" class="card" autocomplete="off" style="margin-top:16px"></form>
+    <div id="preOut" aria-live="polite" style="margin-top:16px"></div>
+    <div id="preLegal"></div>
+  </section>
+
+  <section id="s6" class="part" aria-labelledby="s6h">
+    <header class="sh">
+      <div>
+        <p class="eyebrow">Part 7</p>
+        <h2 id="s6h" tabindex="-1">The pre-construction roadmap</h2>
+        <p>For buyers going pre-construction in Ontario: what happens from signing to final closing, what protects you at each step, and two checks that can save you money or your deposit.</p>
+      </div>
+      <button type="button" class="btn ghost small" data-skip="s7">Skip to part 8</button>
+    </header>
+    <div id="roadFit"></div>
+    <div id="roadStages"></div>
+    <div class="card panel"><h3 style="font-size:20px;margin-bottom:10px">Five things to do</h3><div id="roadCheck"></div></div>
+    <p class="fine">Based on a pre-construction learning guide, with the deposit-protection and delay-compensation figures checked against recent Ontario summaries from <a href="https://contractcheck.ca/blog/tarion-warranty-pre-construction-ontario" target="_blank" rel="noopener">ContractCheck</a> and <a href="https://www.tallproperty.com/builder-delays-cancels-pre-construction-ontario-closing-deposit-refund-rights/" target="_blank" rel="noopener">Tall Property</a>. Rules change, and your agreement controls, so have a lawyer confirm each point.</p>
+  </section>
+
+  <section id="s7" class="part" aria-labelledby="s7h">
+    <header class="sh">
+      <div>
+        <p class="eyebrow">Part 8</p>
+        <h2 id="s7h" tabindex="-1">Making an offer</h2>
+        <p>How to write an offer that protects you: the conditions to ask for, how deposits work, what to do when others are bidding, and when to walk away.</p>
+      </div>
+      <button type="button" class="btn ghost small" data-skip="s8">Skip to part 9</button>
+    </header>
+    <div id="offerCards"></div>
+  </section>
+
+  <section id="s8" class="part" aria-labelledby="s8h">
+    <header class="sh">
+      <div>
+        <p class="eyebrow">Part 9</p>
+        <h2 id="s8h" tabindex="-1">Between offer and closing</h2>
+        <p>What happens after the seller says yes: the inspection, title insurance, closing costs and the adjustments your lawyer calculates.</p>
+      </div>
+      <button type="button" class="btn ghost small" data-skip="s9">Skip to part 10</button>
+    </header>
+    <div id="closeCards"></div>
+    <p class="fine">Based on Condominium Authority of Ontario guidance on the status certificate, FSRAO guidance on title insurance, and Ontario real estate rules on competing offers. Amounts and rules change, so confirm each with your lawyer or agent.</p>
+  </section>
+
+  <section id="s9" class="part" aria-labelledby="s9h">
+    <header class="sh">
+      <div>
+        <p class="eyebrow">Part 10</p>
+        <h2 id="s9h" tabindex="-1">Your buyer representation agreement</h2>
+        <p>The contract you sign with a brokerage before it makes offers for you. This walks through each clause in plain English, what to ask about, and where it sits on the form. Read it before you sign, ideally before you start touring homes.</p>
+      </div>
+      <button type="button" class="btn ghost small" data-skip="s10">Skip to part 11</button>
+    </header>
+    <div id="braTop"></div>
+    <div id="braView"></div>
+    <div id="braEnd" style="margin-top:16px"></div>
+  </section>
+
+  <section id="s10" class="part" aria-labelledby="s10h">
+    <header class="sh">
+      <div>
+        <p class="eyebrow">Part 11</p>
+        <h2 id="s10h" tabindex="-1">Explore the neighbourhood</h2>
+        <p>A home comes with its surroundings. Check the restaurants, schools, parks and transit around an address, and confirm which schools serve it, before you make an offer.</p>
+      </div>
+      <button type="button" class="btn ghost small" data-skip="foot">Skip to the end</button>
+    </header>
+    <div id="nbBox"></div>
+  </section>
+
+  <div class="card" id="foot" style="margin-top:48px"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- Data: TRREB Market Watch, September 2026 ---------- */
+const AREAS=[
+ {region:'City of Toronto',items:[
+  {id:'tw',label:'Toronto West',sales:532,avg:985920,med:830000,ldom:33,condo:640248,tor:true},
+  {id:'tc',label:'Toronto Central',sales:924,avg:1102955,med:721000,ldom:34,condo:640248,tor:true},
+  {id:'te',label:'Toronto East',sales:481,avg:956004,med:880000,ldom:29,condo:640248,tor:true}]},
+ {region:'Peel',items:[
+  {id:'mi',label:'Mississauga',sales:468,avg:929600,med:868000,ldom:36,condo:482848},
+  {id:'br',label:'Brampton',sales:404,avg:854322,med:816750,ldom:32,condo:482848},
+  {id:'ca',label:'Caledon',sales:64,avg:1070154,med:962495,ldom:41,condo:482848}]},
+ {region:'Halton',items:[
+  {id:'oa',label:'Oakville',sales:162,avg:1365169,med:1211500,ldom:32,condo:638586},
+  {id:'bu',label:'Burlington',sales:177,avg:1033458,med:880000,ldom:34,condo:638586},
+  {id:'mt',label:'Milton',sales:118,avg:1018973,med:917500,ldom:35,condo:638586}]},
+ {region:'York',items:[
+  {id:'va',label:'Vaughan',sales:213,avg:1163441,med:1080000,ldom:42,condo:564236},
+  {id:'mk',label:'Markham',sales:245,avg:1125353,med:1051000,ldom:34,condo:564236},
+  {id:'rh',label:'Richmond Hill',sales:172,avg:1189203,med:1079000,ldom:36,condo:564236}]},
+ {region:'Durham',items:[
+  {id:'du',label:'Durham Region',sales:552,avg:828141,med:770000,ldom:30,condo:440829}]}
+];
+const ALL=[].concat.apply([],AREAS.map(r=>r.items));
+const GTA={label:'All TRREB areas',sales:5040,avg:1006409,med:860000,ldom:34,condo:605257};
+const SRC_TRREB='https://trreb.ca/hlfiles/pdf/mw_september_2026_564895214753249.pdf';
+const SRC_RATE='https://www.ratehub.ca/interest-rate-forecast';
+
+//#MODEL-START
+const SELL=0.04, VAC=0.03;
+function ltt(P){
+  const br=[[55000,.005],[250000,.01],[400000,.015],[2000000,.02],[Infinity,.025]];
+  let t=0,prev=0;
+  for(const b of br){ if(P>prev){ t+=(Math.min(P,b[0])-prev)*b[1]; } prev=b[0]; }
+  return t;
+}
+function minDownFor(P,inv){
+  if(inv) return 0.2*P;
+  if(P<=500000) return 0.05*P;
+  if(P<1500000) return 25000+0.1*(P-500000);
+  return 0.2*P;
+}
+function maxPriceFor(D,inv){
+  if(inv) return D/0.2;
+  if(D<=25000) return D/0.05;
+  if(D<125000) return 500000+(D-25000)/0.1;
+  if(D<300000) return 1499999;
+  return D/0.2;
+}
+function model(S,M){
+  const inv=M.view==='invest', condo=M.type==='condo', P=M.price;
+  const minDown=minDownFor(P,inv);
+  const down=Math.max(S.down,minDown), short=S.down<minDown-1;
+  const ltv=(P-down)/P;
+  const insured=!inv&&ltv>0.8+1e-9;
+  const amort=(insured&&M.amort===30&&S.fthb!=='yes'&&S.precon!=='yes')?25:M.amort;
+  const amortCut=amort!==M.amort;
+  const prem=insured?(P-down)*((ltv>0.9?0.04:ltv>0.85?0.031:0.028)+(amort===30?0.002:0)):0;
+  const pst=prem*0.08;
+  const loan=P-down+prem;
+  const lt=ltt(P), ltBoth=lt*(M.loc?2:1);
+  const rebate=(!inv&&S.fthb==='yes')?Math.min(lt,4000)+(M.loc?Math.min(lt,4475):0):0;
+  const closing=ltBoth-rebate+3500+pst;
+  const cashInv=down+closing;
+  const i=Math.pow(1+M.rate/200,1/6)-1, n=amort*12;
+  const pmt=i>0?loan*i/(1-Math.pow(1+i,-n)):loan/n;
+  const tax1=M.taxr/100*P/12, ins1=condo?55:140, fee1=condo?M.fee:0.01*P/12;
+  const own1=pmt+tax1+ins1+fee1;
+  const g=Math.pow(1+M.appr/100,1/12)-1, ri=Math.pow(1+M.invr/100,1/12)-1;
+  let bal=loan,V=P,PF=cashInv,cumInt=0,cumCF=0;
+  const series=[{t:0,buy:V*(1-SELL)-bal,rent:PF,cumInterest:0,cumCF:0,propNW:V*(1-SELL)-bal,alt:cashInv,bal:bal,val:V}];
+  for(let m=1;m<=180;m++){
+    const yr=Math.floor((m-1)/12);
+    const interest=bal*i, principal=Math.min(pmt-interest,bal);
+    bal-=principal; cumInt+=interest;
+    const tax=M.taxr/100*V/12, ins=ins1*Math.pow(1.025,yr);
+    const fee=condo?M.fee*Math.pow(1.03,yr):0.01*V/12;
+    const owner=(bal>0||principal>0?pmt:0)+tax+ins+fee;
+    const rentNow=M.rent*Math.pow(1+M.rg/100,yr);
+    PF=PF*(1+ri)+(owner-rentNow);
+    cumCF+=rentNow*(1-VAC)-owner;
+    V*=1+g;
+    if(m%12===0){
+      const t=m/12, buy=V*(1-SELL)-bal;
+      series.push({t:t,buy:buy,rent:PF,cumInterest:cumInt,cumCF:cumCF,propNW:buy+cumCF,alt:cashInv*Math.pow(1+M.invr/100,t),bal:bal,val:V});
+    }
+  }
+  const noi1=M.rent*(1-VAC)-(tax1+ins1+fee1);
+  return {P:P,down:down,minDown:minDown,short:short,ltv:ltv,insured:insured,prem:prem,loan:loan,amort:amort,amortCut:amortCut,
+    lt:ltBoth,rebate:rebate,pst:pst,closing:closing,cashInv:cashInv,pmt:pmt,tax1:tax1,ins1:ins1,fee1:fee1,own1:own1,
+    cap:noi1*12/P,cf1:noi1-pmt,coc:(noi1-pmt)*12/cashInv,beRent:(pmt+tax1+ins1+fee1)/(1-VAC),series:series};
+}
+function insCompare(S,M,o){
+  const P=M.price;
+  const minD=minDownFor(P,false);
+  const base=Object.assign({},M,{view:'own'});
+  const dA=Math.max(o.insDown||0,minD), dB=0.2*P;
+  const A=model(Object.assign({},S,{down:dA}),Object.assign({},base,{rate:Math.max(0.5,M.rate-(o.adv||0))}));
+  const B=model(Object.assign({},S,{down:dB}),Object.assign({},base,{amort:o.amortUn||M.amort}));
+  const pot=Math.max(M.down||0,dB)+B.closing;
+  const leftA=pot-(A.down+A.closing), leftB=pot-(B.down+B.closing);
+  const startA=Math.max(leftA,0), startB=Math.max(leftB,0);
+  const ri=Math.pow(1+M.invr/100,1/12)-1, budget=Math.max(A.pmt,B.pmt);
+  const pf=(st,pm,m)=>{const g=Math.pow(1+ri,m);return st*g+(budget-pm)*(ri>0?(g-1)/ri:m)};
+  const series=[];
+  for(let t=0;t<=15;t++){
+    const pfA=pf(startA,A.pmt,12*t), pfB=pf(startB,B.pmt,12*t);
+    series.push({t:t,pfA:pfA,pfB:pfB,nwA:A.series[t].buy+pfA,nwB:B.series[t].buy+pfB});
+  }
+  return {A:A,B:B,dA:dA,dB:dB,minD:minD,pot:pot,leftA:startA,needA:Math.max(-leftA,0),leftB:startB,budget:budget,series:series};
+}
+//#MODEL-END
+
+/* ---------- Helpers ---------- */
+const $=s=>document.querySelector(s);
+const fm=n=>(n<0?'−$':'$')+Math.round(Math.abs(n)).toLocaleString('en-CA');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=s=>{const v=parseFloat(String(s).replace(/[^0-9.]/g,''));return isFinite(v)?v:0};
+const r5=n=>Math.round(n/5000)*5000;
+const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function scrollToEl(el){el.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})}
+
+/* ---------- Intake state ---------- */
+const STEPS=['Buyer','Purpose','Down payment','Current home','Search','Viewings','Timing','Areas'];
+const BANDS=[
+ {id:'b1',label:'Under $50K',val:35000},{id:'b2',label:'$50K to $100K',val:75000},
+ {id:'b3',label:'$100K to $200K',val:150000},{id:'b4',label:'$200K to $300K',val:250000},{id:'b5',label:'$300K or more',val:350000}];
+const LOOK=['Just starting','Under 3 months','3 to 6 months','6 to 12 months','Over a year'];
+const S={fthb:null,purpose:null,sell:null,down:0,band:null,gift:null,giftAmt:0,looking:null,seen:null,where:'',like:'',dislike:'',when:null,precon:null,areas:[],done:false};
+let step=0;
+const app=$('#app');
+
+const chip=(g,v,label,on)=>`<button type="button" class="chip" data-g="${g}" data-v="${v}" aria-pressed="${on?'true':'false'}">${label}</button>`;
+const yn=(g,cur,extra)=>`<div class="chips">${chip(g,'yes','Yes',cur==='yes')}${chip(g,'no','No',cur==='no')}${extra||''}</div>`;
+
+function canContinue(s){
+  switch(s){
+    case 0:return !!S.fthb;
+    case 1:return !!S.purpose;
+    case 2:return S.down>0&&!!S.gift&&(S.gift==='no'||(S.giftAmt>0&&S.giftAmt<=S.down));
+    case 3:return !!S.sell;
+    case 4:return !!S.looking;
+    case 5:return S.seen==='no'||(S.seen==='yes'&&S.where.trim().length>0);
+    case 6:return !!S.when&&(S.when==='lt1'||!!S.precon);
+    case 7:return S.areas.length>0;
+  }
+  return false;
+}
+
+function stepHTML(s){
+  if(s===0) return `<h2 id="qh" tabindex="-1">Are you a first-time home buyer?</h2>
+    <p class="hint">Generally this means you have not lived in a home you owned during the last four years. It unlocks tax rebates and savings accounts covered in part three.</p>
+    ${yn('fthb',S.fthb)}`;
+  if(s===1) return `<h2 id="qh" tabindex="-1">Is this for personal use or investment?</h2>
+    <p class="hint">Investment properties follow different mortgage rules and are judged on cash flow, so part three changes with this answer.</p>
+    <div class="chips">${chip('purpose','personal','Personal use, I will live in it',S.purpose==='personal')}${chip('purpose','investment','Investment, I will rent it out',S.purpose==='investment')}</div>`;
+  if(s===2){
+    const gift=S.gift==='yes'?`<div class="field" style="max-width:360px"><label for="giftAmt">How much of it is a gift?</label>
+      <div class="pre"><span>$</span><input id="giftAmt" type="text" inputmode="numeric" value="${S.giftAmt?S.giftAmt.toLocaleString('en-CA'):''}" placeholder="50,000"></div>
+      <p class="fine" id="giftHint" style="margin:0">${S.giftAmt>S.down&&S.down?'The gift cannot be larger than the total down payment.':'Most lenders ask for a signed gift letter confirming the money does not have to be repaid.'}</p></div>`:'';
+    return `<h2 id="qh" tabindex="-1">How much do you have for a down payment?</h2>
+    <p class="hint">Pick a range or type your exact amount. Include savings, RRSP or FHSA money you plan to use, and any gift.</p>
+    <div class="chips">${BANDS.map(b=>chip('band',b.id,b.label,S.band===b.id)).join('')}</div>
+    <div class="field" style="max-width:360px"><label for="downCustom">Or type an amount</label>
+      <div class="pre"><span>$</span><input id="downCustom" type="text" inputmode="numeric" value="${!S.band&&S.down?S.down.toLocaleString('en-CA'):''}" placeholder="120,000"></div></div>
+    <h3>Will any of it be a gift?</h3>
+    ${yn('gift',S.gift)}${gift}`;
+  }
+  if(s===3) return `<h2 id="qh" tabindex="-1">Do you need to sell your current home to buy?</h2>
+    <p class="hint">If you own a home now, when it sells shapes your offers, your conditions and your financing. Parts eight and nine cover how.</p>
+    <div class="chips">${chip('sell','yes','Yes, I need to sell first',S.sell==='yes')}${chip('sell','no','No, I do not need to sell',S.sell==='no')}${chip('sell','none','I do not own a home',S.sell==='none')}</div>${S.sell==='yes'&&S.fthb==='yes'?'<div class="note" style="margin-top:16px"><strong>Check your first answer.</strong> You said you are a first-time buyer, but owning a home you live in usually means you are not. You can go back and change it.</div>':''}`;
+  if(s===4) return `<h2 id="qh" tabindex="-1">How long have you been looking?</h2>
+    <div class="chips">${LOOK.map(l=>chip('looking',l,l,S.looking===l)).join('')}</div>`;
+  if(s===5){
+    const more=S.seen==='yes'?`<div class="field"><label for="where">Where did you go?</label><input id="where" type="text" value="${esc(S.where)}" placeholder="Neighbourhoods, buildings or addresses"></div>
+      <div class="field"><label for="like">What did you like?</label><textarea id="like" placeholder="Layout, light, location, price, anything that stood out">${esc(S.like)}</textarea></div>
+      <div class="field"><label for="dislike">What did you not like?</label><textarea id="dislike" placeholder="Noise, condition, size, fees, commute">${esc(S.dislike)}</textarea></div>`:'';
+    return `<h2 id="qh" tabindex="-1">Have you gone to see any homes?</h2>${yn('seen',S.seen)}${more}`;
+  }
+  if(s===6){
+    const sub=S.when==='gt1'?`<h3>Do you want pre-construction?</h3>
+      <p class="hint">You buy from plans, pay deposits in stages and move in when the building or street is finished.</p>
+      <div class="chips">${chip('precon','yes','Yes',S.precon==='yes')}${chip('precon','no','No',S.precon==='no')}${chip('precon','unsure','Not sure yet',S.precon==='unsure')}</div>`
+      :S.when==='lt1'?`<div class="note"><strong>Resale is the fit for this timeline.</strong> You can take possession in weeks to a few months, which pre-construction cannot match.</div>`:'';
+    return `<h2 id="qh" tabindex="-1">When are you looking to buy?</h2>
+    <div class="chips">${chip('when','lt1','Less than 1 year',S.when==='lt1')}${chip('when','gt1','1 year or more',S.when==='gt1')}</div>${sub}`;
+  }
+  const groups=AREAS.map(r=>`<div class="grp"><h4>${r.region}</h4><div class="chips">${r.items.map(a=>chip('area',a.id,a.label,S.areas.indexOf(a.id)>-1)).join('')}</div></div>`).join('');
+  return `<h2 id="qh" tabindex="-1">What areas are you looking at?</h2>
+    <p class="hint">Pick as many as you like. Market numbers for each one appear below as you choose.</p>${groups}<div id="stats">${statsHTML()}</div>`;
+}
+
+function statsHTML(){
+  const sel=S.areas.map(id=>ALL.find(a=>a.id===id));
+  const row=(a,cls)=>`<tr class="${cls||''}"><td>${a.label}</td><td>${fm(a.avg)}</td><td>${fm(a.med)}</td><td>${fm(a.condo)}</td><td>${a.sales.toLocaleString('en-CA')}</td><td>${a.ldom}</td></tr>`;
+  return `<div class="tw"><table><thead><tr><th>Area</th><th>Average price</th><th>Median price</th><th>Condo apt avg*</th><th>Sales</th><th>Days to sell</th></tr></thead>
+    <tbody>${sel.map(a=>row(a)).join('')}${row(GTA,'base')}</tbody></table></div>
+    <p class="fine">${sel.length?'':'Choose an area to add its row. '}September 2026, all home types, from the <a href="${SRC_TRREB}" target="_blank" rel="noopener">TRREB Market Watch</a>. *Condo apartment average is for the whole region (Toronto, Peel, Halton, York or Durham). Days to sell is average days on market for sold listings.</p>`;
+}
+
+function renderApp(focus){
+  if(S.done){
+    const n=answers().length;
+    app.innerHTML=`<p class="stepno">${n?'Questions complete':'Questions skipped'}</p><div class="q"><h2 id="qh" tabindex="-1">${n?'Your answers are in.':'You skipped the questions.'}</h2>
+      <p class="hint">${n?'The sections below use them. Change an answer any time and the guide updates.':'The sections below still work with general numbers. Answer the questions any time to tailor them.'}</p></div>
+      <div class="nav"><button type="button" class="btn" data-act="goto2">Go to part 2</button><button type="button" class="btn ghost" data-act="edit">${n?'Edit my answers':'Answer the questions'}</button></div>`;
+  } else {
+    app.innerHTML=`<div class="prog" role="progressbar" aria-valuemin="1" aria-valuemax="8" aria-valuenow="${step+1}" aria-label="Step ${step+1} of 8">${STEPS.map((x,i)=>`<span class="seg ${i<=step?'on':''}"></span>`).join('')}</div>
+      <p class="stepno">Step ${step+1} of 8 · ${STEPS[step]}</p>
+      <div class="q">${stepHTML(step)}</div>
+      <div class="nav">${step>0?'<button type="button" class="btn ghost" data-act="back">Back</button>':''}<button id="next" type="button" class="btn" data-act="next" ${canContinue(step)?'':'disabled'}>${step===7?'See what is available':'Continue'}</button><button type="button" class="btn ghost" data-act="skip" style="margin-left:auto">Skip this question</button></div>`;
+  }
+  ledger();
+  if(focus){const h=$('#qh'); if(h){h.focus({preventScroll:true}); const r=app.getBoundingClientRect(); if(r.top<0||r.top>window.innerHeight*.6) scrollToEl(app);}}
+}
+
+function areaNames(){return S.areas.map(id=>ALL.find(a=>a.id===id).label)}
+function downText(){return S.down?fm(S.down)+(S.gift==='yes'&&S.giftAmt?' ('+fm(S.giftAmt)+' gifted)':''):''}
+function whenText(){
+  if(!S.when) return '';
+  if(S.when==='lt1') return 'Under 1 year, resale';
+  return '1 year or more'+(S.precon?(S.precon==='yes'?', wants pre-construction':S.precon==='no'?', resale':', pre-construction undecided'):'');
+}
+function answers(){
+  return [
+    ['First-time buyer',S.fthb?(S.fthb==='yes'?'Yes':'No'):''],
+    ['Purpose',S.purpose?(S.purpose==='personal'?'Personal use':'Investment'):''],
+    ['Down payment',downText()],
+    ['Current home',S.sell?(S.sell==='yes'?'Need to sell first':S.sell==='no'?'No need to sell':'Do not own a home'):''],
+    ['Looking for',S.looking||''],
+    ['Seen homes',S.seen?(S.seen==='no'?'Not yet':'Yes'+(S.where?', '+S.where:'')):''],
+    ['Liked',S.seen==='yes'?S.like:''],
+    ['Did not like',S.seen==='yes'?S.dislike:''],
+    ['Timing',whenText()],
+    ['Areas',areaNames().join(', ')]
+  ].filter(r=>r[1]);
+}
+function ledger(){
+  const rows=answers();
+  $('#ledger').innerHTML=rows.length?`<dl>${rows.map(r=>`<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join('')}</dl>`:'<p class="empty">Your answers collect here as you go.</p>';
+}
+
+function clearStep(s){
+  if(s===0)S.fthb=null;
+  if(s===1)S.purpose=null;
+  if(s===2){S.down=0;S.band=null;S.gift=null;S.giftAmt=0}
+  if(s===3)S.sell=null;
+  if(s===4)S.looking=null;
+  if(s===5){S.seen=null;S.where='';S.like='';S.dislike=''}
+  if(s===6){S.when=null;S.precon=null}
+  if(s===7)S.areas=[];
+}
+function advance(){
+  if(step<7){step++;renderApp(true)}
+  else submit();
+}
+
+app.addEventListener('click',e=>{
+  const act=e.target.closest('[data-act]');
+  if(act){
+    const a=act.dataset.act;
+    if(a==='next'&&canContinue(step)) advance();
+    else if(a==='back'&&step>0){step--;renderApp(true)}
+    else if(a==='skip'){clearStep(step);advance()}
+    else if(a==='edit'){S.done=false;step=answers().length?7:0;renderApp(true)}
+    else if(a==='goto2'){scrollToEl($('#sr'))}
+    return;
+  }
+  const c=e.target.closest('[data-g]');
+  if(!c) return;
+  const g=c.dataset.g, v=c.dataset.v, auto={fthb:1,purpose:1,sell:1,looking:1};
+  if(g==='fthb')S.fthb=v;
+  else if(g==='purpose')S.purpose=v;
+  else if(g==='sell')S.sell=v;
+  else if(g==='looking')S.looking=v;
+  else if(g==='band'){const b=BANDS.find(x=>x.id===v);S.band=v;S.down=b.val}
+  else if(g==='gift'){S.gift=v;if(v==='no')S.giftAmt=0}
+  else if(g==='seen'){S.seen=v}
+  else if(g==='when'){S.when=v;if(v==='lt1')S.precon=null}
+  else if(g==='precon'){S.precon=v}
+  else if(g==='area'){const k=S.areas.indexOf(v);if(k>-1)S.areas.splice(k,1);else S.areas.push(v)}
+  const here=step;
+  renderApp(false);
+  const pressed=app.querySelector(`[data-g="${g}"][data-v="${v}"]`); if(pressed) pressed.focus({preventScroll:true});
+  if(auto[g]){setTimeout(()=>{if(step===here&&canContinue(step)&&!S.done)advance()},220)}
+});
+
+app.addEventListener('input',e=>{
+  const id=e.target.id;
+  if(id==='downCustom'){S.down=num(e.target.value);S.band=null;app.querySelectorAll('[data-g="band"]').forEach(b=>b.setAttribute('aria-pressed','false'))}
+  else if(id==='giftAmt'){S.giftAmt=num(e.target.value);const h=$('#giftHint');if(h)h.textContent=S.giftAmt>S.down&&S.down?'The gift cannot be larger than the total down payment.':'Most lenders ask for a signed gift letter confirming the money does not have to be repaid.'}
+  else if(id==='where')S.where=e.target.value;
+  else if(id==='like')S.like=e.target.value;
+  else if(id==='dislike')S.dislike=e.target.value;
+  else return;
+  const nx=$('#next'); if(nx) nx.disabled=!canContinue(step);
+  ledger();
+});
+
+/* ---------- Part 3 ---------- */
+let M=null;
+
+function areaPrice(type){
+  const sel=S.areas.map(id=>ALL.find(a=>a.id===id));
+  if(!sel.length) return type==='condo'?GTA.condo:GTA.avg;
+  const v=sel.reduce((t,a)=>t+(type==='condo'?a.condo:a.avg),0)/sel.length;
+  return v;
+}
+function curDown(){return M&&M.down?M.down:(S.down||100000)}
+function defaultsFor(type,view){
+  const inv=view==='invest';
+  const cap=maxPriceFor(curDown(),inv);
+  const raw=areaPrice(type);
+  const price=Math.max(200000,Math.min(2000000,Math.floor(Math.min(raw,cap)/5000)*5000));
+  const rent=Math.round(price*(type==='condo'?0.004:0.0035)/50)*50;
+  return {price:price,rent:rent,raw:raw,cap:cap};
+}
+function initM(){
+  M=null;
+  const view=S.purpose==='investment'?'invest':'own';
+  const dn=S.down||100000;
+  const dc=defaultsFor('condo',view), dh=defaultsFor('house',view);
+  const type=(areaPrice('house')<=dh.cap)?'house':'condo';
+  const d=type==='condo'?dc:dh;
+  M={view:view,type:type,down:dn,loc:S.areas.some(id=>ALL.find(a=>a.id===id).tor),price:d.price,rent:d.rent,rate:4.34,amort:S.fthb==='yes'?30:25,
+     years:10,appr:3,invr:5,rg:3,fee:575,taxr:0.8};
+}
+
+function readsHTML(){
+  const inv=M.view==='invest', maxP=maxPriceFor(M.down,inv);
+  const raw=areaPrice(M.type), tl=M.type==='condo'?'condo apartment':'home (all types)';
+  const items=[];
+  items.push(`<li><b>What your down payment covers</b><span>${inv?'Investment properties need at least 20% down, so ':'Under the minimum down payment rules, '}${fm(M.down)} supports a purchase up to about ${fm(maxP)}${!inv&&maxP>=1499999?' (insured mortgages stop at $1.5 million)':''}. The average ${tl} in ${S.areas.length?esc(areaNames().join(', ')):'the GTA'} is about ${fm(raw)}${raw>maxP?', so budget is the main constraint right now':''}. Lenders also test your income at a higher rate, so a pre-approval gives the real ceiling.</span></li>`);
+  if(S.fthb==='yes'&&!inv) items.push(`<li><b>First-time buyer programs</b><span>The land transfer tax refunds are built into the numbers below. The FHSA, the Home Buyers' Plan and the other programs are listed in part 3.</span></li>`);
+  if(S.gift==='yes'&&S.giftAmt) items.push(`<li><b>Your ${fm(S.giftAmt)} gift</b><span>Get the gift letter signed early. The lender will want it, along with proof the money is in your account, before they approve the mortgage.</span></li>`);
+  if(S.sell==='yes') items.push(`<li><b>Selling your current home</b><span>The numbers below assume the money for your down payment is in hand. If it comes from the sale, timing matters: see parts 8 and 9 for conditions and closing dates, and ask your lender about bridge financing.</span></li>`);
+  if(S.when==='lt1') items.push(`<li><b>Buying within a year</b><span>Resale fits your timeline. Get a pre-approval now so you can move when the right home appears, since rates are held for a period of time once approved.</span></li>`);
+  if(S.when==='gt1'&&S.precon==='yes') items.push(`<li><b>Pre-construction</b><span>Your mortgage starts when you close, often years after signing, so you keep paying rent until then and the numbers below start at closing. Deposits are paid in stages while you wait, and your rate is set closer to closing.</span></li>`);
+  if(S.when==='gt1'&&S.precon!=='yes') items.push(`<li><b>Buying in a year or more</b><span>That gives you time to save, build your FHSA and watch the market. Rerun these numbers when your savings or the rates change.</span></li>`);
+  if(S.looking==='6 to 12 months'||S.looking==='Over a year') items.push(`<li><b>You have been looking a while</b><span>When a search runs this long, the wish list and the budget usually do not match yet. Ranking your must-haves against what the area medians below actually buy tends to help.</span></li>`);
+  if(S.seen==='yes'&&(S.like||S.dislike)) items.push(`<li><b>What you saw</b><span>${S.like?'You liked: '+esc(S.like)+'. ':''}${S.dislike?'You did not like: '+esc(S.dislike)+'.':''}</span></li>`);
+  return `<h3 style="font-size:22px;margin-bottom:14px">What your answers mean</h3><ul class="reads">${items.join('')}</ul>`;
+}
+
+function marketHTML(){
+  return `<h3 style="font-size:22px">Is now a good time? The market read</h3>
+  <dl class="mk">
+    <div><dt>Average price</dt><dd>$1,006,409 <small>down 5.1% from last year</small></dd></div>
+    <div><dt>Sales</dt><dd>5,040 <small>down 9.0%</small></dd></div>
+    <div><dt>New listings</dt><dd>16,500 <small>down 14.4%</small></dd></div>
+    <div><dt>Sales to new listings</dt><dd>37.8%</dd></div>
+    <div><dt>Months of inventory</dt><dd>4.6</dd></div>
+    <div><dt>Sold vs list price</dt><dd>98%</dd></div>
+  </dl>
+  <p style="margin-top:16px;max-width:70ch">Prices are below last year and homes sell about 2% under asking on average. A sales-to-new-listings ratio under 40% is generally read as a buyer's market, so buyers have more room to negotiate than they did in the tight years. Prices can still move either way from here.</p>
+  <p class="fine">All TRREB areas, September 2026. Source: <a href="${SRC_TRREB}" target="_blank" rel="noopener">TRREB Market Watch</a>.</p>`;
+}
+
+/* ---------- Part 2: the home buying process ---------- */
+let MAPS={};
+function mapNums(){
+  if(!M) return null;
+  const base=Object.assign({},S,{down:M.down});
+  const r0=model(base,M), r1=model(base,Object.assign({},M,{rate:M.rate+1})), r2=model(base,Object.assign({},M,{rate:M.rate+2}));
+  return {r0,r1,r2,cushion:3*r0.own1,need:r0.cashInv+3*r0.own1};
+}
+function buildMap(){
+  const ul=a=>`<ul class="list">${a.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  const go=(id,t)=>`<button type="button" class="btn ghost small" data-skip="${id}" style="margin:4px 8px 0 0">${t}</button>`;
+  const ck=ckLoad();
+  const done=i=>{const id='ck'+(400+i);return `<label class="fine" for="${id}" style="display:flex;gap:8px;align-items:center;margin:14px 0 0"><input type="checkbox" id="${id}" data-ck="${id}" data-mst="${i}" ${ck[id]?'checked':''}> I have done this</label>`};
+  const out=t=>`<p style="margin:0 0 10px;padding:8px 12px;border-left:3px solid var(--accent);background:var(--accent-soft)"><b>What you leave with:</b> ${t}</p>`;
+  const stage=(i,t,sub,body,o)=>`<details class="stg" data-i="${i}"${i===1?' open':''}><summary><span class="sn">${i}</span><span><b>${t}</b><br><span class="sd">${sub}</span></span></summary><div class="sb">${out(o)}${body}${done(i)}</div></details>`;
+  const s1=stage(1,'Choose your team','Do this before you tour any homes',
+    ul(['<b>Real estate agent:</b> market knowledge, searching, negotiating and offer strategy. Before they represent you, confirm how they are paid and read what you are asked to sign.','<b>Mortgage broker or bank mortgage specialist:</b> pre-approval, rate shopping and choosing a product. A broker can compare several lenders at once.','<b>Real estate lawyer:</b> reviews the agreement and handles title and the money on closing day. Hire one before you make an offer or, at the very least, before your conditions expire.','<b>Home inspector:</b> an independent look at the condition of a resale home. On a new build, the equivalent is the pre-delivery inspection.'])+go('s9','The agreement you sign with an agent (part 10)'),
+    'four names you trust, and a clear understanding of what the agent will be paid.');
+  const s2=stage(2,'Assess your readiness','Four honest checks',
+    ul(['<b>Stable income:</b> can you show steady pay for the lender, and expect it to continue?','<b>Debts and monthly obligations:</b> car loans, credit cards and lines of credit all reduce what a lender will give you.','<b>Savings:</b> enough for the down payment, the closing costs and a cushion for the first months. The figures below use your answers.','<b>Life stability:</b> job security, and plans to stay in the home for at least five years. Buying and selling again within a few years often costs more than renting.'].concat(S.sell==='yes'?['<b>Your current home:</b> you said you need to sell it first. Work out what you will net after your mortgage and selling costs, and when the money arrives, because that decides how much you can put down and when.']:[]))+'<div id="mapSave"></div>'+go('s2','Programs that help you save (part 3)'),
+    'a yes or not-yet on each of the four, and a savings gap you can name.');
+  const s3=stage(3,'Build a budget','Include the costs people forget',
+    ul(['Closing costs: land transfer tax, legal fees, title insurance and adjustments.','Property tax, condo fees, utilities and home insurance every month.','Maintenance. Plan to set money aside every year for repairs, more on an older home.','Test the mortgage payment at a rate higher than today\'s, so a renewal or a rate rise does not break your budget.'])+'<div id="mapPay"></div>'+go('s3','Run your own numbers (part 4)')+go('s8','Closing costs (part 9)'),
+    'a monthly number and a cash-to-close number you are comfortable with.');
+  const s4=stage(4,'Get pre-approved','Know your ceiling before you shop',
+    ul(['A pre-approval gives you a borrowing ceiling, a rate hold for a set period, and credibility when you make an offer.','It is not a final approval. The lender still checks the property and your documents once you have an accepted offer.','Ask how long the rate hold lasts, and what documents they need. Do not move large sums around while you are being approved.','If you are putting down less than 20%, ask about mortgage insurance. See part 5.'])+go('s4','Insured or uninsured mortgage (part 5)'),
+    'a pre-approval letter with your ceiling, your rate and how long the rate is held.');
+  const s5=stage(5,'Search, offer and negotiate','Be firm on criteria, flexible on terms',
+    ul(['Search with firm criteria: area, type, budget and the things you cannot live without. Look around each address in part 11.','Make offers that your lawyer has reviewed. Many offers are conditional on financing, an inspection and, for a condo, the status certificate.','Negotiate conditions and dates, not just the price. A closing date or a short condition period can matter as much as a few thousand dollars.','Decide your walk-away number before you start. It is much harder in the room.','Buying a new build? The steps differ. See part 7.'].concat(S.sell==='yes'?['You need to sell first. Decide with your agent and lawyer whether to sell before you buy, line up the closing dates, or use bridge financing.']:[]))+go('s7','Making an offer (part 8)')+go('s6','Pre-construction roadmap (part 7)'),
+    'an accepted offer, and conditions you have either met or waived on purpose.');
+  const s6=stage(6,'Close and move in','The last few weeks',
+    ul(['Your lawyer registers the transfer, your mortgage funds, and you get the keys.','Plan for closing-day cash: your down payment, land transfer tax net of any refund, legal fees and adjustments.','Have home insurance in place before closing, because your lender will ask for proof.','Arrange utilities and a change of address, and book the movers.'])+go('s8','Between offer and closing (part 9)'),
+    'the keys, and title in your name.');
+  $('#mapStages').innerHTML=s1+s2+s3+s4+s5+s6;
+  updateMap();
+}
+function updateMap(){
+  const n=mapNums(); if(!n||!$('#mapStages')) return;
+  const sv=$('#mapSave'), py=$('#mapPay');
+  const gap=n.need-M.down;
+  if(sv) sv.innerHTML=`<div class="card" style="margin:14px 0"><div class="rows"><div><span>Down payment you have</span><span>${fm(M.down)}</span></div><div><span>Down payment and closing costs on a ${fm(M.price)} home</span><span>${fm(n.r0.cashInv)}</span></div><div><span>Cushion for 3 months of ownership costs</span><span>${fm(n.cushion)}</span></div><div class="tot"><span>Savings to aim for</span><span>${fm(n.need)}</span></div><div><span>${gap>0?'Still to save':'Ahead by'}</span><span class="${gap>0?'':'pos'}">${fm(Math.abs(gap))}</span></div></div><p class="fine">Based on the price and rate from part 4, which you can change there.</p></div>`;
+  if(py) py.innerHTML=`<div class="card" style="margin:14px 0"><div class="rows"><div><span>Mortgage payment at ${M.rate.toFixed(2)}%</span><span>${fm(n.r0.pmt)}</span></div><div><span>At ${(M.rate+1).toFixed(2)}%</span><span>${fm(n.r1.pmt)}</span></div><div><span>At ${(M.rate+2).toFixed(2)}%</span><span>${fm(n.r2.pmt)}</span></div><div class="tot"><span>Monthly ownership cost including tax, insurance and fees</span><span>${fm(n.r0.own1)}</span></div></div><p class="fine">Same price, down payment and amortization as part 4.</p></div>`;
+  nextStep();
+}
+function nextStep(){
+  const el=$('#mapNext'); if(!el) return;
+  const ck=ckLoad(); const names=['Choose your team','Assess your readiness','Build a budget','Get pre-approved','Search, offer and negotiate','Close and move in'];
+  let i=1; while(i<=6&&ck['ck'+(400+i)]) i++;
+  el.innerHTML=i>6?'<b>Every stage is ticked.</b> Enjoy the new home.':`<b>Your next step:</b> stage ${i}, ${names[i-1]}.`;
+}
+$('#sr').addEventListener('change',e=>{const t=e.target; if(t&&t.matches&&t.matches('[data-ck]')){const o=ckLoad();o[t.dataset.ck]=t.checked;ckSave(o);nextStep()}});
+
+/* ---------- Part 3: incentives ---------- */
+function fit(k){
+  const f=S.fthb, pre=S.precon, inv=S.purpose==='investment', has=S.areas.length>0;
+  const tor=S.areas.some(id=>ALL.find(a=>a.id===id).tor);
+  if(f===null&&!S.purpose&&!S.when&&!has) return '';
+  if(k==='fhsa'||k==='hbp'||k==='hbtc'){ if(inv) return 'no'; if(f===null) return ''; return f==='yes'?'yes':'maybe'; }
+  if(k==='gst'){
+    if(inv) return 'no';
+    if(pre==='yes') return f==='no'?'maybe':'yes';
+    if(pre==='no'||S.when==='lt1') return 'no';
+    if(S.when==='gt1'&&pre==='unsure') return 'maybe';
+    return '';
+  }
+  if(k==='hst'){
+    if(pre==='yes') return inv?'maybe':'yes';
+    if(pre==='no'||S.when==='lt1') return 'no';
+    if(S.when==='gt1'&&pre==='unsure') return 'maybe';
+    return '';
+  }
+  if(k==='ltt'){ if(inv) return 'no'; if(f===null) return ''; return f==='yes'?'maybe':'no'; }
+  if(k==='mltt'){ if(inv) return 'no'; if(has&&!tor) return 'no'; if(f===null||!has) return ''; return f==='yes'?'maybe':'no'; }
+  if(k==='amort30'){ if(inv) return 'no'; if(f===null&&pre===null) return ''; return (f==='yes'||pre==='yes')?'yes':'maybe'; }
+  if(k==='eco'){ return pre==='yes'?'yes':''; }
+  return '';
+}
+function prog(o){
+  const f=o.k?fit(o.k):'';
+  const tag=f==='yes'?'<span class="tag yes">Fits your answers</span>':f==='maybe'?'<span class="tag maybe">Check eligibility</span>':f==='no'?'<span class="tag no">Probably not for you</span>':'';
+  return `<article class="pc"><div class="pt"><h4>${o.title}</h4>${tag}</div><p class="pv">${o.value}</p><p>${o.lede}</p>
+    <details><summary>The details</summary><ul class="list">${o.bullets.map(b=>`<li>${b}</li>`).join('')}</ul></details></article>`;
+}
+function igrp(title,intro,body){return `<div class="ig"><h3>${title}</h3>${intro?`<p class="hint">${intro}</p>`:''}${body}</div>`}
+function ckLoad(){try{return JSON.parse(localStorage.getItem('hbg-ck')||'{}')}catch(e){return {}}}
+function ckSave(o){try{localStorage.setItem('hbg-ck',JSON.stringify(o))}catch(e){}}
+$('#inc').addEventListener('change',e=>{
+  const t=e.target; if(t&&t.matches&&t.matches('[data-ck]')){const o=ckLoad();o[t.dataset.ck]=t.checked;ckSave(o)}
+});
+const lk=(u,t)=>`<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
+
+function incentivesHTML(){
+  const savings=[
+    {k:'fhsa',title:"First Home Savings Account (FHSA)",value:"$8,000 a year, $40,000 lifetime ($80,000 for a couple)",
+     lede:"A registered account where contributions are tax-deductible and withdrawals to buy a home are tax-free, with nothing to repay.",
+     bullets:["Open it now, even with a small deposit. Room only starts building once the account exists, and opening it starts the clock on up to $8,000 of carry-forward.","Unused room carries forward up to $8,000, so the most you can add in one year is $16,000.","Contributing more than your room costs 1% a month on the excess.","The account lasts 15 years or until age 71. If you never buy, the balance can move to an RRSP or RIF without using up your RRSP room.","There is no waiting period before you can withdraw."]},
+    {k:'hbp',title:"RRSP Home Buyers' Plan (HBP)",value:"$60,000 each, $120,000 for a couple",
+     lede:"Take money out of your RRSP tax-free to buy a home, then pay it back to the RRSP over time.",
+     bullets:["The money must sit in the RRSP for at least 90 days in a row before you withdraw it. Withdrawing sooner disallows the tax deduction.","You repay it over 15 years, starting the second year after the withdrawal.","Any yearly repayment you miss is added to your income for that year."]}
+  ];
+  const tax=[
+    {k:'hst',title:"New-build tax rebates: Ontario HST relief and the federal GST rebate (Bill C-4)",value:"Ontario relief up to $130,000, plus up to $50,000 federal for first-time buyers",
+     lede:"Two programs return tax on a newly built home. Ontario's expanded 2026 relief covers all eligible buyers. The federal GST rebate under Bill C-4 is for first-time buyers only. Neither applies to resale homes, which carry no GST or HST.",
+     bullets:["<b>Ontario HST relief (2026):</b> on homes up to $1,000,000 the full 13% HST comes back, up to $130,000. From $1,000,000 to $1,500,000 the maximum stays at $130,000. It then shrinks to the older $24,000 provincial rebate by $1,850,000.","<b>Ontario HST relief, who and when:</b> your agreement with the builder must be signed between April 1, 2026 and March 31, 2027. The home must be your primary residence or a qualifying rental. Construction must start before 2029 and be substantially complete before 2032. Ontario's Bill 114 became law on May 12, 2026, and the relief applies back to April 1, 2026.","<b>Federal GST rebate (Bill C-4):</b> the full 5% GST on homes up to $1,000,000, shrinking in a straight line to zero at $1,500,000. That is up to $50,000, once in your lifetime.","<b>Federal GST rebate, who and when:</b> you must be 18 or older, a Canadian citizen or permanent resident, and not have lived in a home you or your spouse owned, anywhere in the world, in the current year or the four years before. It covers agreements signed with a builder from March 20, 2025 to before 2031, with construction finishing before 2036. For owner-built homes, construction must start on or after March 20, 2025 and before 2031. Bill C-4 became law on March 12, 2026 and the CRA portal opened on March 17, 2026.","<b>How they combine:</b> the Ontario figure of up to $130,000 already includes help with the federal 5%, so the two do not simply add. Ask your lawyer or builder how your closing statement combines them. A first-time buyer who also qualifies for Ontario's first-time buyer rebate gets the greater of that rebate and the HST relief, not both.","<b>Getting the money:</b> the builder can credit the rebates against your price on closing day, or you can claim them from the CRA, the federal GST rebate within two years of taking possession. A credit at closing is not guaranteed. If the builder does not credit the HST, you may have to pay it and claim it later, which can take months. Some contracts make you liable if a rebate is denied or delayed, so have your lawyer read that clause. Make sure your agreement spells out both rebates.","Some CRA forms for the Ontario relief were still being released in mid-2026, so ask your builder how it is being handled. Details come from public law-firm and industry summaries, so confirm them with your lawyer or builder: "+lk('https://www.airdberlis.com/insights/publications/publication/2026-ontario-budget--enhanced-hst-relief-on-new-homes','Aird Berlis')+", "+lk('https://www.pwc.com/ca/en/services/tax/publications/tax-insights/enhanced-hst-relief-sale-new-homes-ontario-2026.html','PwC')+", "+lk('https://buildersontario.com/ontario-new-home-hst/','Builders Ontario')+"."]},
+    {k:'hbtc',title:"First-Time Home Buyers' Tax Credit",value:"$1,500 off your federal tax",
+     lede:"A non-refundable credit claimed on line 31270 of your tax return.",
+     bullets:["It is 15% of $10,000.","Either spouse can claim it, or you can split it between co-buyers as long as the total stays at $1,500.","You must not have owned and lived in a home, in Canada or abroad, in the current year or the four years before. The test is waived if you qualify for the Disability Tax Credit or you are buying a home for a relative with a disability."]},
+    {k:'ltt',title:"Ontario land transfer tax refund",value:"Up to $4,000",
+     lede:"Fully covers the provincial land transfer tax on homes priced up to about $368,000, and takes $4,000 off above that.",
+     bullets:["This is the strictest definition of first-time buyer: you must never have owned a home, or an interest in one, anywhere in the world. Your spouse must not have owned property while married to you. Ontario checks this against land registry records, including outside Canada.","Your lawyer claims it on the Statement of Adjustments through Teraview at closing. If it is missed, you can apply to the Ontario Ministry of Finance within 18 months of registration.","Lenders often want a parent on title. A parent who is not a first-time buyer cuts your refund by their ownership share, so a 50% share lowers it to $2,000. If your lawyer prepares a Bare Trust Declaration before closing, the parent holds title only as a trustee and you keep the full refund."]},
+    {k:'mltt',title:"Toronto municipal land transfer tax refund",value:"Up to $4,475, or $8,475 with Ontario's",
+     lede:"The City of Toronto charges its own land transfer tax on top of Ontario's, and first-time buyers get a second refund.",
+     bullets:["Same test as Ontario: you must never have owned a home anywhere.","Toronto is the only place covered here with a municipal land transfer tax, so this applies to homes in the City of Toronto only."]},
+    {title:"Non-Resident Speculation Tax",value:"25% tax, refundable in some cases",
+     lede:"Foreign nationals and foreign companies buying residential property in Ontario pay 25% at closing.",
+     bullets:["You can apply for a full refund if you become a Canadian permanent resident within 4 years of the registration date.","You must live in the home as your primary residence within 60 days of closing, keep title the whole time, and apply within 180 days of getting permanent residence."]}
+  ];
+  const rules=[
+    {title:"Smaller down payment up to $1.5 million",value:"5% on the first $500,000, 10% on the rest",
+     lede:"Since December 2024, a down payment under 20% is allowed on homes priced under $1,500,000.",
+     bullets:["An $800,000 home needs $55,000 down (6.88%). At $1,499,999 you need about $125,000 (8.33%).","At $1,500,000 the rule jumps to 20%, which is $300,000. That is a cliff of about $175,000 in extra cash for $1 more of price.","Default insurance from CMHC, Sagen or Canada Guaranty is required whenever you put down under 20%.","The premium is 0.60% to 4.00% of the loan depending on your down payment, plus 0.20% for a 30-year amortization. It is added to your mortgage.","Ontario charges 8% sales tax on that premium. It cannot be added to the mortgage, so you pay it in cash on closing day."]},
+    {k:'amort30',title:"30-year insured mortgages",value:"Payments about $250 to $380 a month lower",
+     lede:"Since December 15, 2024, first-time buyers on any property, and any buyer of a newly built home, can stretch an insured mortgage to 30 years.",
+     bullets:["The insurance premium rises by 0.20 percentage points, for example from 3.10% to 3.30%.","You pay more interest over the life of the loan, but the lower payment helps you qualify.","Example: a $600,000 insured mortgage tested at 6.09% (a 4.09% rate plus 2%) costs $3,881 a month over 25 years and $3,566 over 30 years. That is $315 less, which takes a $120,000 household's housing ratio from 38.81% to 35.66% and lets it borrow roughly $40,000 more."]},
+    {title:"The stress test",value:"Qualify at your rate plus 2%, or 5.25%, whichever is higher",
+     lede:"Lenders check that you could still afford the mortgage at a higher rate.",
+     bullets:["Housing costs (principal, interest, property tax, heat and 50% of condo fees) can be at most 39% of gross household income.","Total debt payments, which add consumer debt, car leases, personal loans and credit cards, can be at most 44%.","At least one borrower or guarantor needs a credit score of at least 600."]}
+  ];
+  const energy=[
+    {k:'eco',title:"CMHC Eco Plus",value:"25% back on your insurance premium",
+     lede:"For new homes that beat the energy benchmark by at least 20%, or hold a recognized green certification.",
+     bullets:["Qualifying homes are rated at least 20% better than a typical new home on EnerGuide, or certified under standards such as ENERGY STAR, LEED, Passive House, Step Code, R-2000, CHBA Net Zero or Novoclimat.","Example: on a $1,500,000 new home with 10% down, the 3.10% premium is $41,850 and the refund is $10,462.50.","Apply directly to CMHC within 24 months of closing the mortgage."]},
+    {title:"CMHC Eco Improvement",value:"25% back on your insurance premium",
+     lede:"For existing homes where you spend at least $20,000 on energy improvements after you buy.",
+     bullets:["Qualifying work covers the building envelope, heating and cooling equipment such as heat pumps, and renewable energy.","You need paid invoices and an EnerGuide renovation report confirming the work was done."]},
+    {title:"Home Renovation Savings Program",value:"Ontario, through November 30, 2026",
+     lede:"Rebates from Enbridge Gas and Save on Energy for upgrades after you move in. It closes soon, so check whether it is still open.",
+     bullets:["Cold-climate heat pumps: $1,250 per ton up to $7,500 if you heat with something other than gas, and $500 per ton up to $2,000 if you heat with gas.","Ground-source heat pumps: $2,000 per ton up to $12,000 for non-gas heating, and a flat $3,000 for gas heating.","Insulation bundle: up to $7,700 (exterior walls $3,600, foundation $2,300, attic $1,500), plus $600 toward the energy assessment and a $500 bonus for three or more measures. It needs assessments before and after by a certified EnerGuide advisor.","Attic insulation on its own: up to $1,250 when you go from R-12 or lower to R-50 or higher. It needs pre-approval and a participating contractor, but no energy assessment."]}
+  ];
+  const noMuni=S.areas.length?`<div class="note warn"><strong>None of your selected areas are covered.</strong> These five programs are the ones listed. Nothing for Toronto, Peel, York, Halton or Durham is listed.</div>`:'';
+  const muni=`<div class="tw"><table><thead><tr><th>Program</th><th>Loan</th><th>Max price</th><th>Household income cap</th><th>Asset cap</th></tr></thead><tbody>
+    <tr><td>Niagara Region (Welcome Home Niagara)</td><td>10%, up to $66,200</td><td>$662,000</td><td>$95,100 single, $113,700 for 2 or more</td><td>$50,000</td></tr>
+    <tr><td>Simcoe County (Affordable Homeownership)</td><td>10%, up to $50,000</td><td>$712,300</td><td>$121,500 net</td><td>$20,000</td></tr>
+    <tr><td>City of Hamilton</td><td>5%, up to about $25,000, with 5% of the principal forgiven each year</td><td>Local cap</td><td>Municipal limit</td><td>Municipal limit</td></tr>
+    <tr><td>Dufferin County (Homeownership Programme)</td><td>A percentage of the price</td><td>Local cap</td><td>Moderate-income limit</td><td>Regional limit</td></tr>
+    <tr><td>City of Brantford (B-Home)</td><td>Flat $20,000</td><td>Local cap</td><td>Municipal limit</td><td>Municipal limit</td></tr></tbody></table></div>
+    <ul class="list"><li>The loan is a second mortgage with 0% interest and no monthly payments. It is forgiven if you live in the home as your main residence for 20 years.</li>
+    <li>Selling, renting or refinancing before then means repaying the loan plus a proportional share of the home's price increase.</li>
+    <li>These programs count FHSA, TFSA and RRSP balances and family gifts toward the asset cap. Filling a $40,000 FHSA already puts you over Simcoe's $20,000 cap, so add up your savings before you apply.</li></ul>${noMuni}`;
+  const defs=`<div class="tw"><table><thead><tr><th>Program</th><th>Who counts</th><th>Look-back</th><th>Worth</th></tr></thead><tbody>
+    <tr><td>CMHC Home Start (30-year insured)</td><td style="white-space:normal;min-width:260px;text-align:left">Never owned a home in Canada, or did not live in an owned home in the current calendar year or 4 before. Also open after a recent relationship breakdown, and to anyone buying a newly built home.</td><td>4 calendar years</td><td>About $250 to $380 a month</td></tr>
+    <tr><td>Home Buyers' Tax Credit and FHSA</td><td style="white-space:normal;min-width:260px;text-align:left">You and your spouse did not live in a home you owned, in Canada or abroad, in the current year or 4 before. The credit test is waived for people with disabilities and for homes bought for a relative with a disability.</td><td>4 calendar years</td><td>$1,500 credit, and the FHSA</td></tr>
+    <tr><td>GST Rebate (Bill C-4)</td><td style="white-space:normal;min-width:260px;text-align:left">18 or older, citizen or permanent resident, not lived in a home owned by you or your spouse anywhere in the world in the current year or 4 before.</td><td>4 calendar years, once per lifetime</td><td>Up to $50,000</td></tr>
+    <tr><td>Ontario and Toronto land transfer tax</td><td style="white-space:normal;min-width:260px;text-align:left">Never owned a home or an interest in one, anywhere, at any time. Your spouse must not have owned property while married to you.</td><td>Lifetime</td><td>Up to $8,475</td></tr></tbody></table></div>
+    <div class="note" style="margin-top:16px"><strong>One buyer, two answers.</strong> Someone who sold a condo in 2019 and rented from 2020 to 2025 passes the federal four-year test. They can use the FHSA and HBP, the GST rebate, the $1,500 credit and a 30-year insured mortgage. They fail Ontario's lifetime test, so they get no $4,000 or $4,475 refund and pay the full land transfer tax in cash at closing. The CRA relies on your own declaration checked against your tax filings. Ontario checks land registry records, including outside Canada.</div>`;
+  const ex1=`<article class="pc"><div class="pt"><h4>$800,000 Toronto resale, married couple</h4></div><p class="pv">$18,525 cash for closing costs</p>
+    <p>Combined income $160,000. They put $200,000 (25%) down using two FHSAs ($80,000) and two Home Buyers' Plan withdrawals ($120,000), so the $600,000 mortgage needs no insurance.</p>
+    <div class="rows"><div><span>Ontario land transfer tax</span><span>$12,475</span></div><div><span>Toronto land transfer tax</span><span>$12,475</span></div>
+    <div><span>Ontario refund</span><span class="pos">−$4,000</span></div><div><span>Toronto refund</span><span class="pos">−$4,475</span></div>
+    <div><span>Legal fees and disbursements</span><span>$2,050</span></div>
+    <div class="tot"><span>Cash needed for taxes and costs</span><span>$18,525</span></div>
+    <div><span>Credit on line 31270 at tax time</span><span class="pos">−$1,500</span></div></div></article>`;
+  const ex2=`<article class="pc"><div class="pt"><h4>$950,000 St. Catharines new build, single buyer</h4></div><p class="pv">$84,053.75 in relief stacked</p>
+    <p>An ENERGY STAR home on a 30-year Home Start mortgage with 10% ($95,000) down. The $855,000 loan is 90% of the price, so the premium is 3.10% plus 0.20%, or 3.30%.</p>
+    <div class="rows"><div><span>Mortgage insurance premium (3.30%)</span><span>$28,215</span></div>
+    <div><span>Mortgage including the premium</span><span>$883,215</span></div>
+    <div><span>Sales tax on the premium, paid in cash</span><span>$2,257.20</span></div>
+    <div><span>Federal GST rebate (Bill C-4)</span><span class="pos">$47,500</span></div>
+    <div><span>Ontario HST rebate (the older $24,000 version)</span><span class="pos">$24,000</span></div>
+    <div><span>Ontario land transfer tax refund</span><span class="pos">$4,000</span></div>
+    <div><span>Home Buyers' Tax Credit</span><span class="pos">$1,500</span></div>
+    <div><span>CMHC Eco Plus refund (25% of the premium)</span><span class="pos">$7,053.75</span></div>
+    <div class="tot"><span>Total relief</span><span>$84,053.75</span></div></div>
+    <p class="fine">This example uses the older $24,000 Ontario rebate. The expanded 2026 rebate above could return the whole $123,500 of HST on a home this price, so the real total could be higher.</p></article>`;
+  const ck=ckLoad(); let n=0;
+  const phase=(t,items)=>`<article class="pc"><div class="pt"><h4>${t}</h4></div><ul class="ck">${items.map(i=>{n++;const id='ck'+n;return `<li><label for="${id}"><input type="checkbox" id="${id}" data-ck="${id}" ${ck[id]?'checked':''}><span>${i}</span></label></li>`}).join('')}</ul></article>`;
+  const checklist=`<div class="pg">
+    ${phase('Before you make an offer',['Open an FHSA now, even with a small deposit, to start your $8,000-a-year room.','If you will use the Home Buyers\' Plan, leave your RRSP deposits in place for 90 days before you withdraw.','If you plan to apply for municipal down payment help, add up all your savings (FHSA, RRSP, TFSA and gifts) against that program\'s asset cap.'])}
+    ${phase('When you sign the agreement',['On a new build, make sure the agreement spells out the GST and HST rebates and whether they are credited to you at closing.','Ask your lender to submit the file under CMHC Home Start if you need a 30-year amortization.'])}
+    ${phase('At closing',['Give your lawyer proof you are a first-time buyer and have them claim the Ontario and Toronto land transfer tax refunds on the Statement of Adjustments.','If a parent co-signs and goes on title, have your lawyer draft a Bare Trust Declaration before closing so you keep the full refund.','Set aside cash for the 8% sales tax on the mortgage insurance premium.'])}
+    ${phase('After closing',['Claim the $1,500 credit on line 31270 for the year you bought.','Apply for the CMHC Eco Plus or Eco Improvement refund within 24 months of closing.'])}</div>`;
+  const provs=`<details style="margin-top:8px"><summary>Buying outside Ontario? Land transfer relief in other provinces</summary><div class="tw"><table><thead><tr><th>Province</th><th>Program</th><th>Value</th><th>Conditions</th></tr></thead><tbody>
+    <tr><td>British Columbia</td><td>Property Transfer Tax exemption</td><td>Up to $8,000</td><td style="white-space:normal;min-width:240px;text-align:left">Full exemption up to $835,000, tapering to zero at $860,000. You must never have owned a home anywhere, and have lived in BC for 12 months or filed 2 BC tax returns in the last 6 years.</td></tr>
+    <tr><td>Prince Edward Island</td><td>Real property transfer tax exemption</td><td>100% exemption</td><td style="white-space:normal;min-width:240px;text-align:left">Everyone named on the deed must qualify, and a 183-day residency rule applies.</td></tr>
+    <tr><td>Alberta</td><td>No land transfer tax</td><td>Land titles fees only</td><td style="white-space:normal;min-width:240px;text-align:left">$50 plus $5 for every $5,000 of value.</td></tr>
+    <tr><td>Quebec</td><td>Municipal transfer duty credit</td><td>Refundable, up to $5,875</td><td style="white-space:normal;min-width:240px;text-align:left">Tapers above $750,000 and is nil at $1,000,000.</td></tr>
+    <tr><td>Saskatchewan</td><td>First-time buyer credit</td><td>Up to $1,575</td><td style="white-space:normal;min-width:240px;text-align:left">Non-refundable credit worth 10.5% on up to $15,000.</td></tr></tbody></table></div></details>`;
+  const closed=`<ul class="closed">
+    <li><b>Closed</b><span>CMHC First-Time Home Buyer Incentive. It gave a 5% or 10% shared-equity loan in exchange for a share of your home's price growth. It stopped taking applications on March 21, 2024, with final approvals on March 31, 2024.</span></li>
+    <li><b>Cancelled</b><span>Canada Greener Homes Grant. Closed to new applicants in Budget 2025.</span></li>
+    <li><b>Cancelled</b><span>Canada Secondary Suite Loan Program. Ended in Budget 2025.</span></li></ul>`;
+  return `<div class="note" style="margin:0 0 32px;max-width:78ch"><strong>The short version.</strong> One buyer can pull up to $100,000 of tax-sheltered savings into a down payment ($40,000 from the FHSA plus $60,000 through the HBP), and a couple up to $200,000. Open the FHSA first and fill it before using the RRSP, since the FHSA has no repayment. On a new build, federal and Ontario programs together can return up to $130,000 of HST, and the federal GST piece alone is up to $50,000. Ontario and Toronto refund up to $8,475 of land transfer tax.</div>
+    ${igrp('Build your down payment','Two federal accounts that can be used on the same purchase.',`<div class="pg">${savings.map(prog).join('')}</div>`)}
+    ${igrp('Tax back at closing and tax time','Refunds and credits that lower what buying costs.',`<div class="pg">${tax.map(prog).join('')}</div>${provs}`)}
+    ${igrp('Mortgage rules that shape your budget','Not incentives, but they decide how much you can borrow and how much cash you need.',`<div class="pg">${rules.map(prog).join('')}</div>`)}
+    ${igrp('Help from municipalities','Forgivable down payment loans for lower-income renters in parts of Ontario.',muni)}
+    ${igrp('After you close: energy rebates','Refunds on insurance premiums and upgrade grants.',`<div class="pg">${energy.map(prog).join('')}</div>`)}
+    ${igrp('Who counts as a first-time buyer','Four programs, four different tests.',defs)}
+    ${igrp('Two worked examples','How the programs add up in practice.',`<div class="pg">${ex1}${ex2}</div>`)}
+    ${igrp('Your checklist','Tick things off as you go. Your ticks stay in this browser.',checklist)}
+    ${igrp('Programs that no longer exist','Old articles still mention these, so skip them.',closed)}
+    <p class="fine">Sources: two 2025 to 2026 incentive briefings, plus public summaries of Ontario's 2026 HST rebate from ${lk('https://www.airdberlis.com/insights/publications/publication/2026-ontario-budget--enhanced-hst-relief-on-new-homes','Aird Berlis')}, ${lk('https://www.pwc.com/ca/en/services/tax/publications/tax-insights/enhanced-hst-relief-sale-new-homes-ontario-2026.html','PwC')}, ${lk('https://www.canadianmortgagetrends.com/2026/06/ontarios-new-home-hst-relief-awaits-final-rules-as-builders-explore-workarounds/','Canadian Mortgage Trends')} and ${lk('https://buildersontario.com/ontario-new-home-hst/','Builders Ontario')}. Programs and limits change, so confirm each one with your lender or lawyer before you rely on it.</p>`;
+}
+
+/* ---------- Part 6: pre-construction vs resale ---------- */
+let PC={np:450000,rp:410000,yrs:10,un:1440,uo:2400,cn:2500,co:22000,mn:1200,mo:1800,cos:25000,
+        ip:600000,dp:20,ir:5,fee:400,tax:300,mo2:9};
+//#PRE-START
+function preModel(P){
+  const nu=P.un*P.yrs, ou=P.uo*P.yrs, nm=P.mn*P.yrs, om=P.mo*P.yrs;
+  const newT=P.np+nu+P.cn+nm, oldT=P.rp+ou+P.co+om+P.cos;
+  const gap=(P.np+P.cn)-(P.rp+P.co+P.cos), save=(P.uo-P.un)+(P.mo-P.mn);
+  const be=gap<=0?0:(save>0?gap/save:null);
+  return {nu,ou,nm,om,newT,oldT,diff:oldT-newT,gap,save,be};
+}
+function occModel(P){
+  const dep=P.ip*P.dp/100, unpaid=Math.max(P.ip-dep,0), interest=unpaid*P.ir/100/12;
+  const m=interest+P.fee+P.tax;
+  return {dep,unpaid,interest,m,total:m*P.mo2,gone:(interest+0)*P.mo2};
+}
+//#PRE-END
+function buildPre(){
+  const f=(id,l,v,o)=>`<div class="field"><label for="${id}">${l}${o&&o.sub?` <span class="sub">${o.sub}</span>`:''}</label><div class="${o&&o.suf?'':'pre'}">${o&&o.suf?'':'<span>$</span>'}<input id="${id}" type="number" min="0" step="${o&&o.step||100}" value="${v}"></div></div>`;
+  $('#preIn').innerHTML=`<h3 style="font-size:20px;margin-bottom:2px">The long-run cost of each</h3>
+    <p class="hint" style="margin-bottom:0">Starting numbers are the briefing's example. Replace them with quotes for the homes you are looking at.</p>
+    <div class="three">
+    ${f('pcNp','New build price',PC.np)}${f('pcRp','Resale price',PC.rp)}
+    <div class="field"><label for="pcYrs">Years you plan to stay</label><input id="pcYrs" type="number" min="1" max="30" step="1" value="${PC.yrs}"></div>
+    ${f('pcUn','New: utilities per year',PC.un)}${f('pcUo','Resale: utilities per year',PC.uo)}
+    ${f('pcMn','New: maintenance per year',PC.mn)}${f('pcMo','Resale: maintenance per year',PC.mo)}
+    ${f('pcCn','New: big repairs',PC.cn,{sub:'one-time'})}${f('pcCo','Resale: roof, HVAC, water heater',PC.co,{sub:'one-time'})}
+    ${f('pcCos','Resale: updates you would want',PC.cos,{sub:'one-time'})}</div>`;
+  $('#occIn').innerHTML=`<h3 style="font-size:20px;margin-bottom:2px">Interim occupancy: what you pay before closing</h3>
+    <p class="hint" style="margin-bottom:0">For a new condo. Defaults are the briefing's $600,000 example.</p>
+    <div class="three">
+    ${f('ocP','Purchase price',PC.ip,{step:5000})}
+    <div class="field"><label for="ocD">Deposits paid <span class="sub">% of price</span></label><input id="ocD" type="number" min="0" max="100" step="1" value="${PC.dp}"></div>
+    <div class="field"><label for="ocR">Interest rate on the unpaid balance <span class="sub">%, from your agreement</span></label><input id="ocR" type="number" min="0" max="15" step="0.25" value="${PC.ir}"></div>
+    ${f('ocF','Estimated monthly condo fee',PC.fee,{step:10})}${f('ocT','Estimated monthly property tax',PC.tax,{step:10})}
+    <div class="field"><label for="ocM">Months of occupancy before closing</label><input id="ocM" type="number" min="1" max="48" step="1" value="${PC.mo2}"></div></div>`;
+}
+$('#preIn').addEventListener('submit',e=>e.preventDefault());
+$('#occIn').addEventListener('submit',e=>e.preventDefault());
+const preMap={pcNp:'np',pcRp:'rp',pcUn:'un',pcUo:'uo',pcMn:'mn',pcMo:'mo',pcCn:'cn',pcCo:'co',pcCos:'cos',pcYrs:'yrs',
+  ocP:'ip',ocD:'dp',ocR:'ir',ocF:'fee',ocT:'tax',ocM:'mo2'};
+function onPre(e){const k=preMap[e.target.id]; if(!k) return; const v=parseFloat(e.target.value); PC[k]=isFinite(v)?Math.max(0,v):0; if(k==='yrs') PC.yrs=Math.min(30,Math.max(1,Math.round(PC.yrs||1))); if(k==='dp') PC.dp=Math.min(100,PC.dp); updatePre();}
+$('#preIn').addEventListener('input',onPre);
+$('#occIn').addEventListener('input',onPre);
+
+function updatePre(){
+  const r=preModel(PC), o=occModel(PC), y=PC.yrs;
+  const yl=y+(y===1?' year':' years');
+  const head=Math.abs(r.diff)<1000?`Over ${yl} the two cost about the same.`
+    :r.diff>0?`Over ${yl}, the new build costs about ${fm(r.diff)} less.`
+    :`Over ${yl}, the resale home costs about ${fm(-r.diff)} less.`;
+  const why=r.diff>0
+    ?`The new home costs ${fm(PC.np-PC.rp)} more to buy but ${fm(r.save)} a year less to run, and it skips ${fm(PC.co+PC.cos-PC.cn)} of repairs and updates. ${r.be===0?'On these numbers it is ahead from the start.':r.be?`The extra purchase cost is recovered after about ${r.be.toFixed(1)} years.`:''}`
+    :`The lower purchase price (${fm(PC.rp)} against ${fm(PC.np)}) outweighs the running costs and repairs you entered. Try a longer stay or higher repair costs to see where it flips.`;
+  const row=(l,a,b,c)=>`<tr${c?` class="${c}"`:''}><td>${l}</td><td>${fm(a)}</td><td>${fm(b)}</td></tr>`;
+  const pickA=S.precon==='yes'?'You said you want pre-construction, so the interim occupancy numbers below matter to you.':S.precon==='no'?'You said resale. This is what you would be giving up, and what you would be avoiding.':'';
+  $('#preOut').innerHTML=`<div class="verdict"><h3>${head}</h3><p>${why}</p>
+    <p>${pickA} This only compares costs. It ignores location, the rate you can lock, and what each home could sell for.</p></div>
+    <div class="card panel"><div class="tw"><table><thead><tr><th></th><th>New build</th><th>Resale</th></tr></thead><tbody>
+    ${row('Purchase price',PC.np,PC.rp)}${row('Utilities, '+yl,r.nu,r.ou)}${row('Major repairs',PC.cn,PC.co)}${row('Routine maintenance, '+yl,r.nm,r.om)}${row('Updates after closing',0,PC.cos)}
+    ${row('Total outlay',r.newT,r.oldT,'base')}</tbody></table></div>
+    <p class="fine">Repairs and updates are entered as one-time amounts, so a longer stay changes only utilities and maintenance. Closing costs, land transfer tax and financing are the same for both and are left out. Interest on the extra mortgage a higher price needs is not included either.</p></div>
+    <div class="card panel" style="margin-top:16px"><h3 style="font-size:20px;margin-bottom:12px">Interim occupancy on a ${fm(PC.ip)} condo</h3>
+    <div class="rows"><div><span>Deposits paid</span><span>${fm(o.dep)}</span></div><div><span>Unpaid balance</span><span>${fm(o.unpaid)}</span></div>
+    <div><span>Monthly interest on the unpaid balance</span><span>${fm(o.interest)}</span></div>
+    <div><span>Estimated property tax</span><span>${fm(PC.tax)}</span></div><div><span>Estimated condo fee</span><span>${fm(PC.fee)}</span></div>
+    <div class="tot"><span>Monthly occupancy fee</span><span>${fm(o.m)}</span></div>
+    <div><span>Total over ${PC.mo2} ${PC.mo2===1?'month':'months'}</span><span>${fm(o.total)}</span></div></div>
+    <p class="fine">None of this pays down a mortgage or builds equity. The interest part, ${fm(o.interest*PC.mo2)} over ${PC.mo2} ${PC.mo2===1?'month':'months'}, is a pure carrying cost. You also keep paying your current rent or housing costs until you move in, which this does not count. Every extra $10,000 you deposit before occupancy cuts the monthly interest by about ${fm(10000*PC.ir/100/12)}.</p></div>`;
+}
+
+function buildPreContent(){
+  const fitLine=S.precon==='yes'?'<div class="note" style="margin:0 0 24px;max-width:78ch"><strong>You said you are interested in pre-construction.</strong> The risks and the occupancy period below are the parts to understand before you sign.</div>'
+    :S.precon==='no'||S.when==='lt1'?'<div class="note" style="margin:0 0 24px;max-width:78ch"><strong>You said you are buying a resale home.</strong> This part shows what a new build would change, in case you are weighing both.</div>':'';
+  const card=(t,v,l,b)=>`<article class="pc"><div class="pt"><h4>${t}</h4></div><p class="pv">${v}</p><p>${l}</p><details><summary>The details</summary><ul class="list">${b.map(x=>`<li>${x}</li>`).join('')}</ul></details></article>`;
+  const cmp=card('Why a new build can cost less to own','About 21% less energy, and less upkeep',
+    'Homes built after 2010 use about 21% less energy per square foot than homes built before 2000.',
+    ['At roughly $1.04 per square foot a year for utilities in a new home, against $1.28 for a 1980s home and $1.62 for a pre-1960 home. On 1,800 square feet that is $1,872 against $2,916, a saving of $1,044 a year.','Older homes run operating costs of 5% to 6% of their value a year, against about 3% for homes built after 2010.','Only 11% of new-build owners report repair bills over $100 a month, against 26% of resale owners.','Big-ticket items on a resale home come up sooner: a furnace or air conditioner lasts 15 to 20 years and costs $5,000 to $10,000 to replace, a roof lasts 20 to 25 years and costs $9,000 to $15,000, and a water heater lasts 10 to 12 years.','Renovating does not return what you spend. In the briefing a $52,000 kitchen added about $39,000 of value (75%) and a $15,000 bathroom added about $11,600 (77.5%).','These are mostly US studies (NAHB and the US Census), priced in US dollars. Treat them as direction, not Ontario quotes.']);
+  const risk=card('What a pre-construction buyer takes on','Three risks that resale buyers mostly avoid',
+    'You sign today and close in a few years. A lot can change in between.',
+    ['<b>Rates.</b> You cannot lock your mortgage rate at signing. If rates rise before closing, your payment rises with them.','<b>Appraisal shortfall.</b> If the market falls while the building goes up, the lender may value the finished unit below your contract price. You cover the gap from your own cash.','<b>Builder risk.</b> Delays, rising costs, changes to the plans or a cancelled project.','Deposits are typically 5% to 20% of the price, paid in instalments over 6 to 24 months. That lets you tie up a home with less cash up front.','Builders sometimes offer rate buydowns, closing-cost credits or discounted lender programs. They protect their public prices that way instead of cutting them, so ask what is on offer.','If you resell within a year or two, you compete with the builder, who can offer incentives you cannot.']);
+  const tl=`<article class="pc"><div class="pt"><h4>Timelines</h4></div><div class="rows">
+    <div><span>Resale</span><span>Contract, then closing in 30 to 60 days</span></div>
+    <div><span>Pre-construction</span><span>Contract, deposits over 6 to 24 months, interim occupancy, final closing</span></div>
+    <div><span>Interim occupancy</span><span>Usually 3 to 9 months, up to 12 to 36 in large towers</span></div>
+    <div><span>Title and mortgage</span><span>Builder keeps title until final closing; no mortgage can be registered before then</span></div></div>
+    <p class="fine">During interim occupancy you live in the unit as a licensed occupant, not an owner. You need the builder's written consent to rent it out, assign it or renovate.</p></article>`;
+  const war=`<article class="pc"><div class="pt"><h4>Tarion warranty in Ontario</h4></div><div class="rows">
+    <div><span>Year 1</span><span>Workmanship and materials, Building Code violations, water and draft getting in</span></div>
+    <div><span>Year 2</span><span>Water through basement or foundation walls, cladding, electrical, plumbing and heating and cooling delivery</span></div>
+    <div><span>Year 7</span><span>Major structural defects</span></div>
+    <div><span>Maximum claim</span><span>$400,000 freehold, $300,000 condo unit</span></div>
+    <div><span>Late closing</span><span>$150 a day, up to $7,500 (per the briefing)</span></div></div>
+    <p class="fine">Warranties pass to the next owner if you sell inside the coverage period. Tarion confirms the $400,000 and $300,000 caps for agreements signed on or after July 1, 2023. Earlier agreements are capped at $300,000. Recent Ontario summaries confirm the $150 a day and $7,500 cap. Ontario also issued a new delayed-closing regulation in 2026 (O. Reg. 293/26), so confirm the current rules with ${lk('https://www.tarion.com','Tarion')} or your lawyer. The step-by-step process is in part 7.</p></article>`;
+  const hor=`<div class="cols"><div class="card"><h4>Pre-construction tends to suit</h4><ul class="list"><li>People holding for 7 or more years, so lower running costs add up.</li><li>People who want a modern layout and their own finishes.</li><li>People who can use a builder's rate or closing-cost offer.</li><li>People who can carry the occupancy fee and wait.</li></ul></div>
+    <div class="card"><h4>Resale tends to suit</h4><ul class="list"><li>People who need to move in soon.</li><li>People who want an established neighbourhood with mature trees and nearby schools.</li><li>People holding for 3 to 5 years, who would rather avoid occupancy fees and rate exposure.</li><li>People who want a mortgage rate locked within weeks.</li></ul></div></div>
+    <p class="fine">That 7 years against 3 to 5 split is the briefing's rule of thumb, not a rule. Use the calculator above with your own numbers.</p>`;
+  $('#preTop').innerHTML=`${fitLine}<div class="pg">${cmp}${risk}</div>`;
+  $('#preLegal').innerHTML=`<div class="pg" style="margin-top:16px">${tl}${war}</div><h3 style="font-size:20px;margin:28px 0 0">Which one fits which buyer</h3>${hor}`;
+}
+
+/* ---------- Part 7: pre-construction roadmap ---------- */
+let RD={rec:'',doc:'',gde:'',price:650000,hst:13,mill:0.65,mos:10};
+//#ROAD-START
+function addDays(iso,n){const [y,m,d]=iso.split('-').map(Number);const t=new Date(Date.UTC(y,m-1,d+n));return t.toISOString().slice(0,10)}
+function coolOff(a,b,c){
+  const ds=[a,b,c].filter(Boolean); if(ds.length<3) return null;
+  const start=ds.slice().sort().pop();
+  return {start,deadline:addDays(start,10)};
+}
+function taxAudit(P){
+  const net=P.price/(1+P.hst/100);
+  const builderM=P.price*0.01/12, cityM=net*P.mill/100/12;
+  return {net,builderM,cityM,over:builderM-cityM,total:(builderM-cityM)*P.mos};
+}
+//#ROAD-END
+function fmtDate(iso){const [y,m,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)).toLocaleDateString('en-CA',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'})}
+function buildRoad(){
+  const stage=(n,t,intro,body,open)=>`<details class="stg"${open?' open':''}><summary><span class="sn">${n}</span><span><b>${t}</b><br><span class="sd">${intro}</span></span></summary><div class="sb">${body}</div></details>`;
+  const ul=a=>`<ul class="list">${a.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  const docs=`<div class="tw"><table><thead><tr><th>Document</th><th>What it does</th></tr></thead><tbody>
+    <tr><td>Agreement of Purchase and Sale</td><td style="white-space:normal;min-width:260px;text-align:left">The contract: unit, price, deposit dates, builder obligations, and any caps on closing fees. Changes you want must be written into it.</td></tr>
+    <tr><td>Disclosure Statement</td><td style="white-space:normal;min-width:260px;text-align:left">The proposed condo rules, amenity timelines and the projected first-year operating budget.</td></tr>
+    <tr><td>Condo Authority of Ontario buyers' guide</td><td style="white-space:normal;min-width:260px;text-align:left">The official guide to owners' rights. Your cooling-off clock cannot start until you get it.</td></tr>
+    <tr><td>HCRA information sheet</td><td style="white-space:normal;min-width:260px;text-align:left">Discloses what the project still depends on, such as pre-sale targets, financing and municipal approvals, any of which could cancel it.</td></tr>
+    <tr><td>Addendum with Statement of Critical Dates</td><td style="white-space:normal;min-width:260px;text-align:left">Sets the occupancy dates and delay rules. It overrides conflicting terms in the agreement.</td></tr>
+    <tr><td>Tarion information sheet</td><td style="white-space:normal;min-width:260px;text-align:left">Summarizes deposit protection, warranty coverage and the pre-delivery inspection.</td></tr></tbody></table></div>`;
+  const s1=stage(1,'Choose, register and sign','Months to years before you move in',
+    ul(['Register with the sales team to get launch access and pre-sale pricing. Decide first whether this is a home to live in or an investment, because the right project, floor and layout differ.','Check the builder on the '+lk('https://www.hcraontario.ca','HCRA')+' builder directory for licensing and past projects.','Submit the unit worksheet with government ID to request a specific suite, then sign the agreement and pay the first deposit. Deposits are usually paid in instalments, for example on signing, at 30 days, at 90 to 180 days and at occupancy. Together they add up to roughly 15% to 25%, and your money stays tied up for years.','Anything you were promised, such as upgrades, structural changes or incentives, only counts if it is written into the agreement. Verbal promises do not carry warranty protection.','The builder can cancel a project before construction if it does not reach the pre-sales its lender requires, cannot get construction financing on terms it accepts, or is delayed on municipal approvals. Ask what the agreement says about this, and read the HCRA information sheet for the project\'s status.','Right after signing, create your account on Tarion\'s MyHome portal to track deposit protection, critical dates and warranty windows.','Have a lawyer who handles pre-construction read everything before the cooling-off period ends.'])+
+    '<p class="hint" style="margin:14px 0 6px">The six documents the builder must give you</p>'+docs+
+    '<p class="hint" style="margin:14px 0 6px">The pitch and the fine print</p><div class="tw"><table><thead><tr><th>The pitch</th><th>The reality</th></tr></thead><tbody><tr><td>Lock in today\'s price</td><td style="white-space:normal;min-width:260px;text-align:left">The price is fixed, but what the unit is worth when it is finished can be higher or lower after years of building.</td></tr><tr><td>Easy deposit schedule</td><td style="white-space:normal;min-width:260px;text-align:left">Your cash is committed for years, exposed to delays or a builder going under.</td></tr><tr><td>Custom new home</td><td style="white-space:normal;min-width:260px;text-align:left">Only what is in writing is enforceable and covered by warranty.</td></tr><tr><td>Standard contract</td><td style="white-space:normal;min-width:260px;text-align:left">The agreement is written by the builder\'s lawyers to protect the builder and keep its options open.</td></tr></tbody></table></div>'+
+    '<details style="margin-top:14px"><summary>Who regulates what</summary>'+ul(['<b>Tarion:</b> the new home warranty, deposit protection and late-closing compensation.','<b>HCRA:</b> licenses builders and keeps the public Ontario Builder Directory.','<b>Condominium Authority of Ontario:</b> condo education and dispute resolution through its tribunal, and the condo registry.','<b>CMRAO:</b> licenses condo managers and management companies.','<b>RECO:</b> regulates real estate agents and brokerages.'])+'</details>'+
+    '<div class="note">An agreement signed at a sales centre is not firm yet. For a condo it only becomes binding once you have the signed agreement, the disclosure statement and the buyers\' guide, and the 10-day cooling-off period has passed without you cancelling.</div>',true);
+  const s2=stage(2,'The 10-day cooling-off period','Your free exit, for condos',
+    ul(['A new condo buyer in Ontario can cancel for any reason within 10 calendar days. The builder must refund every deposit with interest and cannot charge a penalty.','The 10 days start on the day the <b>last</b> of the three documents arrives. A builder who sends the guide late has moved your deadline, not you.','Cancel in writing, clearly and with no conditions or counter-demands, and send it to the developer or its lawyer. Your agent cannot cancel for you.','If the builder later makes a material change to the disclosure statement, such as dropping a major amenity, reshaping the suite or changing how common costs are split, you get a second 10-day window.','Freehold new builds have no cooling-off period. A signed freehold agreement can be firm straight away, so negotiate conditions such as lawyer review or financing. Read any "deemed waiver" wording: if you do not give written notice before the condition date, the condition is treated as satisfied and you are bound.'])+
+    '<div id="coolBox"></div>');
+  const dt=(a,b,c)=>`<tr><td>${a}</td><td style="white-space:normal;min-width:220px;text-align:left">${b}</td><td style="white-space:normal;min-width:220px;text-align:left">${c}</td></tr>`;
+  const dates=`<p class="hint" style="margin:0 0 6px">The three dates that matter</p><div class="tw"><table><thead><tr><th>Date</th><th>What it is</th><th>What it means for you</th></tr></thead><tbody>
+    ${dt('Tentative occupancy date','The builder\'s first estimate of when you can move in.','A target only. It can move, and the builder usually does not owe you anything for missing it.')}
+    ${dt('Firm occupancy date','A date the builder commits to by formal written notice.','Once set, it cannot be pushed back without compensation to you, unless the delay is a genuinely unavoidable one.')}
+    ${dt('Outside occupancy date','The latest date the builder has agreed to deliver occupancy.','If you do not get occupancy by then, you have 30 days to cancel in writing and get back everything you paid, with interest and compensation.')}</tbody></table></div>
+    <p class="fine">These dates are in the Statement of Critical Dates in the addendum to your agreement. The addendum overrides conflicting terms elsewhere in the contract. Put all three dates in your calendar the day you sign.</p>`;
+  const delays=`<p class="hint" style="margin:18px 0 6px">What happens when the builder is late</p>`+ul(['<b>Notice:</b> a builder that expects to miss a date has to tell you in writing, and within about 20 days of knowing. If it does not give enough advance notice of a delay, a flat penalty of $1,500 (10 days at $150) can apply.','<b>Compensation:</b> for an unexcused delay, $150 a day, up to $7,500 in total. Other documented costs, such as moving and storage, can be claimed within that cap. If the builder will not pay, you can claim from Tarion.','<b>Unavoidable delays:</b> strikes, fires, acts of God, and epidemics are exempt, but only if the builder sends formal written notice that explains the cause and how long it expects it to last.','<b>What a delay costs you outside the contract:</b> your rent or temporary housing keeps running, your deposit stays tied up, and your mortgage rate hold may expire. The compensation rarely covers all of that.','<b>If the project is cancelled before construction,</b> the builder\'s reasons will be listed in your agreement, such as pre-sales not reaching its lender\'s target, no construction financing, or missing approvals. Your deposits are returned, and Tarion backs deposits up to a limit (see the final stage).']);
+  const s3=stage(3,'The build, delays and financing','Usually 18 to 36 months or more',
+    dates+delays+'<p class="hint" style="margin:18px 0 6px">The rest of the build</p>'+ul(['Colour selection: you pick floors, cabinets, counters and fixtures. Keep a copy of every choice so substitutions are easy to spot.','<b>Financing:</b> the lender checks your finances again 3 to 6 months before closing. Rates, your job, your debts and the appraisal can all change in the meantime. If the appraisal comes in under your price, you pay the gap in cash.','A delay can also make a pre-approval rate hold run out, which means you re-qualify at whatever rates are then. Ask your lender or broker early about a rate hold that covers the long wait. Terms and costs vary, and there is no standard product, so get any offer in writing.','<b>Assignment:</b> you can sell your agreement before closing if the builder agrees in writing. Builders can refuse, charge fees and keep you liable if the buyer defaults, and profit can be taxable income.'])+'<p class="fine">The delay-compensation amounts match recent Ontario summaries, but Ontario issued a new delayed-closing regulation in 2026 (O. Reg. 293/26). Confirm the current rules with Tarion or your lawyer, and check the exact notice periods in your own addendum.</p>',true);
+  const s4=stage(4,'Interim occupancy and the pre-delivery inspection','Keys in hand, title not yet yours',
+    ul(['Before you get the keys, you walk the unit with the builder\'s rep and record every defect on the builder\'s inspection form. That form is not a warranty claim.','If items are still not fixed, list them again on Tarion\'s form within 30 days of taking occupancy, along with anything new you find.','During interim occupancy you live in the unit but the builder still holds title, and no mortgage can be registered. You pay a monthly fee made up of interest on the unpaid balance, estimated property tax and the projected condo fee. None of it reduces what you owe.','Paying more cash before occupancy lowers the unpaid balance, so the interest part of the fee falls. You can test this in part 6.','Property tax is a common place to be overcharged. See the check below.'])+'<div id="taxBox"></div>');
+  const s5=stage(5,'Registration, final closing and warranty','Title transfers and the mortgage starts',
+    ul(['When the builder registers the condo, the building becomes a corporation and your unit gets its own title. The builder appoints the first board and must call a turn-over meeting within 42 days of no longer owning most units, so owners can elect a board and take over the records.','On final closing, title passes to you, your lender pays the balance, interim fees stop, and your mortgage and regular condo fees begin.','<b>Before you take the keys:</b> deposit protection is limited. Condo deposits are meant to be held in trust, with Tarion backing them up to $20,000 per unit if that fails. Freehold buyers have up to $60,000 on homes up to $600,000 and 10% up to $100,000 above that.','<b>After:</b> the 1-, 2- and 7-year warranties in part 6 stay with the unit and pass to later owners.','The condo board must have an engineer or architect audit the common elements, such as the roof, elevators and garage, between months 6 and 10 after registration. The report goes to Tarion before the end of month 11 to keep major claims alive. Ask your board that it is on the calendar.','<b>HST:</b> builders usually quote a price that assumes you will live in the unit and qualify for the new housing rebate, and credit it against the price at closing. An investor generally does not get that credit. The builder adds the rebate back on the statement of adjustments and the investor pays the tax up front, then claims a rental rebate afterwards. Ontario\'s 2026 relief in part 3 may change this for new homes, so ask your lawyer which applies to your agreement and budget the cash.','The builder\'s first-year budget in the disclosure statement has to include common-element costs, the performance audit, the first reserve fund study and the first audited financial statements.','If the builder\'s first-year budget turns out too low, the builder can owe the shortfall. The board has to claim it within 30 days of getting the first full year\'s audited statements. Confirm the exact rules with your lawyer.'])+
+    '<p class="hint" style="margin:14px 0 6px">Condo words you will hear after closing</p><div class="tw"><table><thead><tr><th>Term</th><th>What it means for you</th></tr></thead><tbody>'+[['Condo fees','Monthly payments from every owner for building operations, repairs and the reserve fund. Your share is set in the declaration.'],['Reserve fund','A trust account for major repairs like roofs and elevators. The corporation has to commission an independent study about every three years.'],['Special assessment','An extra charge on owners when the budget or reserve falls short. It is the main surprise cost of condo ownership.'],['Lien','A claim the corporation can register on your unit for unpaid fees, interest and legal costs. It can rank ahead of your mortgage, so never let fees go unpaid.'],['Chargeback','A repair cost the corporation bills to one owner because of that owner\'s act or neglect, added to their fee account.']].map(r=>`<tr><td>${r[0]}</td><td style="white-space:normal;min-width:260px;text-align:left">${r[1]}</td></tr>`).join('')+'</tbody></table></div>');
+  $('#roadStages').innerHTML=s1+s2+s3+s4+s5;
+  const ck=ckLoad(); let n=100;
+  const items=['Hire a pre-construction lawyer the day you get the documents, and have them read the agreement, disclosure statement and buyers\' guide inside the cooling-off period.','Have the lawyer review how the builder calculates the interim property tax, and write the correct method into the agreement.','Ask your lender about a rate hold for the full build time, and get any offer in writing.','Do the pre-delivery inspection carefully and re-list open items on the Tarion form within 30 days of occupancy.','Get written caps on the builder\'s closing adjustments, such as utility hookups, development charges and education levies, and track the first-year condo statements.'];
+  $('#roadCheck').innerHTML=`<ul class="ck">${items.map(i=>{n++;const id='ck'+n;return `<li><label for="${id}"><input type="checkbox" id="${id}" data-ck="${id}" ${ck[id]?'checked':''}><span>${i}</span></label></li>`}).join('')}</ul>`;
+  const sellPre=(S.sell==='yes'&&S.precon==='yes')?'<div class="note warn" style="margin:0 0 20px;max-width:78ch"><strong>You need to sell your current home.</strong> A new build closes years from now, so you will not know your sale price when you sign. Plan when to list so the sale lands near your closing, and keep the extra cash for occupancy fees.</div>':'';
+  const fitLine=sellPre+(S.precon==='yes'?'<div class="note" style="margin:0 0 20px;max-width:78ch"><strong>You said you want pre-construction.</strong> This is the order things happen in.</div>':S.precon==='no'||S.when==='lt1'?'<div class="note" style="margin:0 0 20px;max-width:78ch"><strong>You said you are buying resale.</strong> You can skip this part. It is here in case you change your mind.</div>':'');
+  $('#roadFit').innerHTML=fitLine;
+  $('#coolBox').innerHTML=`<div class="card panel"><h4 style="margin-bottom:2px">When does my cooling-off period end?</h4><p class="hint" style="margin-bottom:0">Enter the day you received each document.</p><div class="three">
+    <div class="field"><label for="rdA">Signed agreement received</label><input id="rdA" type="date" value="${RD.rec}"></div>
+    <div class="field"><label for="rdB">Disclosure statement received</label><input id="rdB" type="date" value="${RD.doc}"></div>
+    <div class="field"><label for="rdC">Buyers' guide received</label><input id="rdC" type="date" value="${RD.gde}"></div></div><div id="coolOut" style="margin-top:12px" aria-live="polite"></div></div>`;
+  $('#taxBox').innerHTML=`<div class="card panel"><h4 style="margin-bottom:2px">Check your interim property tax</h4><p class="hint" style="margin-bottom:0">Some builders estimate tax as 1% of the full price, HST included. The tax is meant to be the city's rate on the assessed price without HST. Ask your lawyer which your agreement allows, and use the mill rate from your city.</p><div class="three">
+    <div class="field"><label for="txP">Price including HST</label><div class="pre"><span>$</span><input id="txP" type="number" min="0" step="1000" value="${RD.price}"></div></div>
+    <div class="field"><label for="txH">HST in the price <span class="sub">%</span></label><input id="txH" type="number" min="0" max="20" step="0.5" value="${RD.hst}"></div>
+    <div class="field"><label for="txR">City tax rate <span class="sub">% of value</span></label><input id="txR" type="number" min="0" max="3" step="0.01" value="${RD.mill}"></div>
+    <div class="field"><label for="txM">Months in interim occupancy</label><input id="txM" type="number" min="1" max="48" step="1" value="${RD.mos}"></div></div><div id="taxOut" style="margin-top:12px" aria-live="polite"></div></div>`;
+  updateRoad();
+}
+function updateRoad(){
+  const c=coolOff(RD.rec,RD.doc,RD.gde), co=$('#coolOut'), to=$('#taxOut');
+  if(co) co.innerHTML=c?`<div class="verdict"><h3>Your last day to cancel is ${fmtDate(c.deadline)}.</h3><p>The clock started on ${fmtDate(c.start)}, the day the last document arrived. Your lawyer should deliver the written notice before then. Do not assume a builder's own date is right.</p></div>`:'<p class="fine">Fill in all three dates to see your deadline.</p>';
+  const t=taxAudit(RD);
+  if(to) to.innerHTML=`<div class="rows"><div><span>Assessed price without HST</span><span>${fm(t.net)}</span></div><div><span>Builder's 1% method, monthly</span><span>${fm(t.builderM)}</span></div><div><span>City-rate method, monthly</span><span>${fm(t.cityM)}</span></div><div class="tot"><span>Difference each month</span><span>${t.over>=0?fm(t.over):'−'+fm(-t.over)}</span></div><div><span>Over ${RD.mos} ${RD.mos===1?'month':'months'}</span><span>${fm(t.total)}</span></div></div>`+(t.over<=0?'<p class="fine">The builder\'s method is not higher than the city method with these numbers.</p>':'<p class="fine">If the builder uses the 1% method, ask your lawyer to raise it before occupancy and request a credit on the final statement of adjustments.</p>');
+}
+$('#s6').addEventListener('input',e=>{
+  const id=e.target.id,v=e.target.value,n=parseFloat(v);
+  if(id==='rdA') RD.rec=v; else if(id==='rdB') RD.doc=v; else if(id==='rdC') RD.gde=v;
+  else if(id==='txP') RD.price=isFinite(n)?Math.max(0,n):0; else if(id==='txH') RD.hst=isFinite(n)?Math.max(0,n):0;
+  else if(id==='txR') RD.mill=isFinite(n)?Math.max(0,n):0; else if(id==='txM') RD.mos=isFinite(n)?Math.max(1,Math.round(n)):1;
+  else return;
+  updateRoad();
+});
+$('#s6').addEventListener('change',e=>{const t=e.target; if(t&&t.matches&&t.matches('[data-ck]')){const o=ckLoad();o[t.dataset.ck]=t.checked;ckSave(o)}});
+
+/* ---------- Parts 7 and 8: offer and closing ---------- */
+let OF={ask:0,ceil:0}, CL={legal:2050,title:300,insp:600,adj:0};
+function buildOffer(){
+  if(!M) return;
+  OF.ask=OF.ask||M.price; OF.ceil=OF.ceil||Math.round(M.price*1.05/1000)*1000;
+  const ul=a=>`<ul class="list">${a.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  const tr=(a,b,c)=>`<tr><td>${a}</td><td style="white-space:normal;min-width:200px;text-align:left">${b}</td><td style="white-space:normal;min-width:200px;text-align:left">${c}</td></tr>`;
+  const cond=`<div class="tw"><table><thead><tr><th>Condition</th><th>What it protects you from</th><th>What to know</th></tr></thead><tbody>
+    ${tr('Financing','Being bound to buy when the lender will not lend, for example because of the appraisal or your documents.','Get a pre-approval first. Give your lender the signed agreement straight away, because the deadline is short.')}
+    ${tr('Home inspection','Paying full price for a home with major hidden problems.','Book the inspector before you write the offer. A good inspector is hard to get on short notice.')}
+    ${tr('Status certificate review (condos)','Buying into a building with money problems, a special assessment coming, lawsuits or a thin reserve fund.','The condo corporation must provide it within 10 days of the request, for no more than $100 for the standard option. Your lawyer reads it.')}
+    ${tr('Lawyer review','A contract you do not understand.','Often combined with the status certificate on a condo. Your lawyer can also catch odd clauses before you are bound.')}
+    ${tr('Sale of your current home','Owning two homes at once.','Sellers dislike it and it usually weakens your offer.')}</tbody></table></div>`;
+  const dep=`<article class="pc"><div class="pt"><h4>Deposits</h4></div><p class="pv">Due when the offer is accepted</p><p>The deposit shows you are serious. It goes toward your down payment and sits in trust with the listing brokerage until closing.</p><details><summary>The details</summary>${ul(['The standard form treats "upon acceptance" as within 24 hours, though your agreement can set a different time. Have the money ready in a form the brokerage accepts.','A larger deposit makes an offer more attractive. Put in only what you are comfortable losing if you break the agreement.','If a condition is not met and you end the deal properly, in writing and on time, the deposit comes back. If you walk away from a firm deal, the seller can keep it.','Lenders want to see where your down payment came from, usually from statements going back a few months, so do not move large sums around at the last minute. A gift needs a signed gift letter. Both are covered in the answers you gave in part 1.'])}</details></article>`;
+  const bid=`<article class="pc"><div class="pt"><h4>Competing offers</h4></div><p class="pv">You usually learn the number, not the amounts</p><p>Sellers choose how to review offers. Know which way this one is going before you write yours.</p><details><summary>The details</summary>${ul(['<b>Offer date:</b> the seller sets a day and time to review all offers together, often about a week after listing.','<b>Offers any time:</b> offers are considered as they arrive. The agent may set a deadline if several buyers are interested.','<b>Bully offer:</b> a pre-emptive offer made before the offer date, usually at a strong price with few conditions and a short fuse. The seller does not have to consider it.','<b>What you may be told:</b> under Ontario\'s rules, the seller\'s agent must tell each buyer who has submitted a written offer how many competing offers there are. Sharing what they say is up to the seller\'s written direction, and a buyer\'s identity can never be shared.','<b>Escalation clauses</b> (beat any other offer by $X, up to a limit) are uncommon here, because offer details are usually private and the clause is hard to apply.','<b>Your levers when you cannot just offer more:</b> fewer or shorter conditions, a larger deposit, and a closing date that suits the seller. Fewer conditions means more risk for you, so only waive one you can live without.'])}</details></article>`;
+  const walk=`<article class="pc"><div class="pt"><h4>When to walk away</h4></div><p class="pv">Decide before the bidding starts</p><p>The pressure to win is strongest when you are in the room. Set the number ahead of time.</p><details><summary>The details</summary>${ul(['Set a ceiling from your budget, not from the asking price. Use the worksheet below and your pre-approval.','Walk away if you would need to waive the inspection and you cannot afford a surprise repair.','Walk away if the price is above what the lender is likely to appraise it for and you cannot cover the gap in cash.','Walk away if a condo\'s status certificate shows a big special assessment, a lawsuit or a thin reserve fund.','There will be another home. A deal you cannot afford is far harder to undo than a deal you lost.'])}</details></article>`;
+  const close=`<article class="pc"><div class="pt"><h4>Closing date flexibility</h4></div><p class="pv">Often worth more than a small price bump</p><p>Resale closings are usually 30 to 90 days out. The date you pick is a bargaining chip.</p><details><summary>The details</summary>${ul(['A seller who has to buy somewhere else may care a lot about timing. A date that fits them can win against a higher price.','A shorter date helps if the seller wants out fast, but it gives you less time to finish your mortgage, inspection and move.','A longer date gives you time to sell or save, but check that your mortgage rate hold lasts until closing.','A seller who needs more time after closing can sometimes stay on as a short rent-back. Get it in writing, with a deposit.','If your move-out and move-in days do not line up, ask your lawyer about the cost of short-term housing or storage before you commit.'])}</details></article>`;
+  const sellNote=S.sell==='yes'?'<div class="note warn" style="margin:0 0 20px;max-width:78ch"><strong>You need to sell first.</strong> That changes how you buy. Many sellers dislike an offer conditional on your sale, so it usually loses to a clean offer. Your options: sell first and rent or stay somewhere briefly, line up the closing dates so one funds the other, or ask your lender about bridge financing. Ask your agent and lawyer how to sequence the two deals.</div>':'';
+  $('#offerCards').innerHTML=sellNote+`<div class="note" style="margin:0 0 20px;max-width:78ch"><strong>This part is about buying a resale home.</strong> A new build has its own steps in part 7. Market numbers: GTA sales to new listings were 37.8% and there were 4.6 months of inventory in September 2026 (TRREB), which usually gives buyers more room than a tight market. Local conditions differ a lot, so ask your agent how many offers similar homes are getting.</div>
+    <div class="card panel"><h3 style="font-size:20px;margin-bottom:8px">Conditions and deadlines</h3><p class="hint" style="margin-bottom:0">A condition is a way out that lasts until a deadline. You must act in writing before it. If you stay silent, the condition lapses and you are bound.</p>${cond}<p class="fine">Typical lengths vary with the market and the home, so ask your agent. Never leave a condition to the last hour, because a missed deadline can mean losing both the exit and your deposit.</p></div>
+    <div class="pg" style="margin-top:16px">${dep}${bid}${walk}${close}</div>
+    <form id="walkIn" class="card" autocomplete="off" style="margin-top:16px"><h3 style="font-size:20px;margin-bottom:2px">Your walk-away number</h3><p class="hint" style="margin-bottom:0">Same cash down at both prices, and the rate and amortization from part 4.</p><div class="three">
+    <div class="field"><label for="wkA">Asking price</label><div class="pre"><span>$</span><input id="wkA" type="number" min="0" step="5000" value="${OF.ask}"></div></div>
+    <div class="field"><label for="wkC">The most you would pay</label><div class="pre"><span>$</span><input id="wkC" type="number" min="0" step="5000" value="${OF.ceil}"></div></div></div></form>
+    <div id="walkOut" style="margin-top:12px" aria-live="polite"></div>`;
+  updateWalk();
+}
+function updateWalk(){
+  const box=$('#walkOut'); if(!box||!M) return;
+  const a=OF.ask, c=OF.ceil;
+  if(!(a>0&&c>0)){box.innerHTML='';return}
+  if(M.view==='invest'){box.innerHTML='<div class="note">Switch part 4 to "A home to live in" to use this worksheet.</div>';return}
+  const run=p=>model(S,Object.assign({},M,{price:p}));
+  const ra=run(a), rc=run(c);
+  const over=(c-a)/a*100;
+  const minC=minDownFor(c,false);
+  const warn=M.down<minC-1?`<div class="note warn" style="margin-bottom:12px"><strong>Your ${fm(M.down)} down is under the ${fm(minC)} minimum at ${fm(c)}.</strong> You would need ${fm(minC-M.down)} more cash.</div>`:'';
+  box.innerHTML=warn+`<div class="card"><div class="rows">
+    <div><span>Your ceiling compared with asking</span><span>${over>=0?'+':'−'}${Math.abs(over).toFixed(1)}%</span></div>
+    <div><span>Mortgage at asking</span><span>${fm(ra.loan)}</span></div><div><span>Mortgage at your ceiling</span><span>${fm(rc.loan)}</span></div>
+    <div><span>Monthly mortgage payment at asking</span><span>${fm(ra.pmt)}</span></div><div><span>Monthly mortgage payment at your ceiling</span><span>${fm(rc.pmt)}</span></div>
+    <div class="tot"><span>Extra per month at your ceiling</span><span>${fm(rc.pmt-ra.pmt)}</span></div>
+    <div><span>Cash needed at closing, asking</span><span>${fm(ra.cashInv)}</span></div><div><span>Cash needed at closing, ceiling</span><span>${fm(rc.cashInv)}</span></div></div>
+    <p class="fine">Lenders lend on the lower of the price and their appraisal. If you pay over asking and the appraisal comes in short, you cover the difference in cash at closing. Check part 4 for what you can afford before you settle on a number.</p></div>`;
+}
+$('#s7').addEventListener('input',e=>{
+  if(e.target.id==='wkA'){const n=parseFloat(e.target.value);OF.ask=isFinite(n)?Math.max(0,n):0;updateWalk()}
+  else if(e.target.id==='wkC'){const n=parseFloat(e.target.value);OF.ceil=isFinite(n)?Math.max(0,n):0;updateWalk()}
+});
+$('#s7').addEventListener('submit',e=>e.preventDefault());
+
+function buildClose(){
+  if(!M) return;
+  const ul=a=>`<ul class="list">${a.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  const steps=`<div class="tw"><table><thead><tr><th>When</th><th>What happens</th></tr></thead><tbody>
+    <tr><td>Offer accepted</td><td style="white-space:normal;min-width:260px;text-align:left">Deposit goes to the brokerage within about 24 hours. Send the signed agreement to your lender, lawyer and inspector.</td></tr>
+    <tr><td>Condition period</td><td style="white-space:normal;min-width:260px;text-align:left">Inspection, lender sign-off, and on a condo the status certificate review. Each ends in either a written waiver or a written termination.</td></tr>
+    <tr><td>Firm</td><td style="white-space:normal;min-width:260px;text-align:left">All conditions are satisfied or waived. From here, backing out risks your deposit and a lawsuit.</td></tr>
+    <tr><td>Weeks before closing</td><td style="white-space:normal;min-width:260px;text-align:left">Your lawyer searches the title, arranges title insurance and prepares the statement of adjustments. Your lender sends instructions. You arrange home insurance and transfer utilities.</td></tr>
+    <tr><td>Pre-closing visit</td><td style="white-space:normal;min-width:260px;text-align:left">A final walkthrough to check the home is in the condition promised and that items included in the sale are still there.</td></tr>
+    <tr><td>Closing day</td><td style="white-space:normal;min-width:260px;text-align:left">You send the balance of your closing funds to your lawyer. The lawyer registers the transfer and mortgage, and you get the keys.</td></tr></tbody></table></div>`;
+  const insp=`<div class="cols"><div class="card"><h4>An inspection usually covers</h4>${ul(['The visible, reachable parts of the structure, roof, exterior and foundation.','Electrical panel, plumbing, heating and cooling, and water heater.','Windows, doors, insulation you can see, and signs of water damage.','On a condo, the unit itself. The shared building parts are not inspected.'])}</div>
+    <div class="card"><h4>It usually does not cover</h4>${ul(['Anything behind walls, under floors or inside the roof that cannot be seen.','Mould, asbestos, radon, lead and pests, unless you hire a specialist.','The sewer line from the house to the street, or a septic system or well, without a separate test.','Whether past renovations had permits, or whether the work meets code.','How long things will last. An inspector spots problems now and says little about future repair costs.'])}</div></div>
+    <p class="fine">Go to the inspection yourself and ask questions. For a condo, the status certificate and reserve fund study tell you about the building, which an inspection of the unit cannot.</p>`;
+  const title=`<article class="pc"><div class="pt"><h4>Title insurance</h4></div><p class="pv">One-time premium, usually a few hundred dollars</p><p>It protects you and your lender against problems with who owns the property or what is registered against it.</p><details><summary>The details</summary>${ul(['It can cover unknown title defects, existing liens such as unpaid taxes or condo charges, errors in public records, survey problems and title fraud.','It does not cover defects you already knew about, environmental problems, work done without permits, or physical defects, which belong to the inspection.','Most lenders accept it in place of a new survey. A problem that only a new survey would have found is not covered.','The buyer pays the premium. Your lawyer arranges it and will tell you the exact price.'])}</details></article>`;
+  const lt=ltt(M.price), ltB=lt*(M.loc?2:1);
+  const reb=(S.fthb==='yes')?Math.min(lt,4000)+(M.loc?Math.min(lt,4475):0):0;
+  const tot=ltB-reb+CL.legal+CL.title+CL.insp+CL.adj;
+  $('#closeCards').innerHTML=`<div class="card panel" style="margin-top:0"><h3 style="font-size:20px;margin-bottom:8px">The weeks between offer and closing</h3>${steps}</div>
+    <div class="card panel" style="margin-top:16px"><h3 style="font-size:20px;margin-bottom:8px">What an inspection covers, and what it does not</h3>${insp}</div>
+    <div class="pg" style="margin-top:16px">${title}<article class="pc"><div class="pt"><h4>Adjustments</h4></div><p class="pv">A true-up of who owes what on closing day</p><p>Your lawyer's statement of adjustments splits costs between you and the seller up to the closing date, so each of you pays for your own time in the home.</p><details><summary>The details</summary>${ul(['Property tax, utilities and condo fees that the seller has prepaid are credited back to them, and bills they have not yet paid come off their side. Your share goes on yours.','It can add to or reduce the cash you bring, so ask your lawyer for the figure a few days before closing.','Any rebate you are owed, such as the first-time buyer refunds in part 3, is claimed on this statement.'])}</details></article></div>
+    <form id="clIn" class="card" autocomplete="off" style="margin-top:16px"><h3 style="font-size:20px;margin-bottom:2px">Closing costs on a ${fm(M.price)} home</h3><p class="hint" style="margin-bottom:0">Land transfer tax comes from the price in part 4. The other amounts are placeholders, so replace them with quotes. They sit on top of your down payment.</p><div class="three">
+    <div class="field"><label for="clL">Legal fees and disbursements</label><div class="pre"><span>$</span><input id="clL" type="number" min="0" step="50" value="${CL.legal}"></div></div>
+    <div class="field"><label for="clT">Title insurance</label><div class="pre"><span>$</span><input id="clT" type="number" min="0" step="25" value="${CL.title}"></div></div>
+    <div class="field"><label for="clI">Home inspection</label><div class="pre"><span>$</span><input id="clI" type="number" min="0" step="25" value="${CL.insp}"></div></div>
+    <div class="field"><label for="clA">Adjustments <span class="sub">your lawyer's figure</span></label><div class="pre"><span>$</span><input id="clA" type="number" min="0" step="50" value="${CL.adj}"></div></div></div></form>
+    <div id="clOut" style="margin-top:12px" aria-live="polite"></div>`;
+  updateClose();
+}
+function updateClose(){
+  const box=$('#clOut'); if(!box||!M) return;
+  const lt=ltt(M.price), ltB=lt*(M.loc?2:1);
+  const reb=(S.fthb==='yes')?Math.min(lt,4000)+(M.loc?Math.min(lt,4475):0):0;
+  const tot=ltB-reb+CL.legal+CL.title+CL.insp+CL.adj;
+  const prem=(M.view==='own')?model(S,M).pst:0;
+  box.innerHTML=`<div class="card"><div class="rows"><div><span>Land transfer tax${M.loc?' (Ontario and Toronto)':''}</span><span>${fm(ltB)}</span></div>
+    ${reb?`<div><span>First-time buyer refund${M.loc?'s':''}</span><span class="pos">−${fm(reb)}</span></div>`:''}
+    <div><span>Legal fees and disbursements</span><span>${fm(CL.legal)}</span></div><div><span>Title insurance</span><span>${fm(CL.title)}</span></div><div><span>Home inspection</span><span>${fm(CL.insp)}</span></div><div><span>Adjustments</span><span>${fm(CL.adj)}</span></div>
+    ${prem>0?`<div><span>Sales tax on mortgage insurance</span><span>${fm(prem)}</span></div>`:''}
+    <div class="tot"><span>Closing costs, on top of your down payment</span><span>${fm(tot+prem)}</span></div></div>
+    <p class="fine">Part 4 uses a flat $3,500 for these extras. Appraisal fees, moving costs and any repairs are not included.</p></div>`;
+}
+$('#s8').addEventListener('input',e=>{
+  const m={clL:'legal',clT:'title',clI:'insp',clA:'adj'}[e.target.id]; if(!m) return;
+  const n=parseFloat(e.target.value); CL[m]=isFinite(n)?Math.max(0,n):0; updateClose();
+});
+$('#s8').addEventListener('submit',e=>e.preventDefault());
+
+/* ---------- Part 10: buyer representation agreement walkthrough ---------- */
+const BCL=[
+ {k:"Top box",t:"Who is signing, for how long, and for what",pg:2,y:[0.19,0.72],
+  say:["This is a contract between you and the brokerage, not just the agent you like. If the agent leaves, the brokerage is still the one you signed with.","\"Exclusive and irrevocable\" means that for the term, this brokerage is the only one that represents you, and you cannot simply walk away from the deal mid-term.","The start and expiry dates set how long that lasts. The area and property type say what kind of home the agreement covers. Keep them realistic: a commission can be owed on any home that fits the description.","You also confirm you have not already signed with another brokerage."],
+  watch:["Is the expiry date what you discussed? Shorter is easier to get out of.","Are the property type and area broad enough to be useful, but not so broad they trap you?","Under current Ontario rules the expiry date must be easy to find on the first page and you initial beside it. The older form this walkthrough follows asks for initials only if the term is over six months. Check your own copy."]},
+ {k:"1 · Definitions",t:"What the words mean",pg:2,y:[0.725,0.87],
+  say:["\"Buyer\" also covers anyone who rents instead of buys. \"Purchase\" includes swaps and options to buy.","The agreement also reaches your spouse, heirs and related companies, so buying through a numbered company or in a spouse's name does not get around it.","\"Related\" is defined broadly: a company where at least half the owners, directors or officers are the same people counts."],
+  watch:["If you plan to buy through a company or with a partner, ask the agent how this clause applies to you."]},
+ {k:"2 · Commission",t:"What the brokerage gets paid and who pays",pg:3,y:[0.04,0.48],
+  say:["You agree the brokerage is paid for helping you buy. Most often the seller's side offers a commission to the brokerage, and the brokerage keeps it.","The form states a rate. If the seller's side offers less than that, or nothing, you pay the difference directly. The agent must tell you the amount offered as soon as practical.","The commission is due on the closing date, plus HST.","<b>Holdover:</b> if the agreement expires and you buy, within the stated number of days, a home you were shown or introduced to during the term, the commission is still owed. If you sign with a new brokerage after expiry, what you owe is reduced by what you pay them.","The commission is also owed if the deal falls through because of something you did or failed to do.","The agreement covers one purchase. If you lease a home first, it stays in force for a later purchase."],
+  watch:["What is the percentage or amount, and does it match what you discussed?","How many days is the holdover?","What happens if the seller's side offers less? Ask for an example in dollars.","The seller's side usually covers the commission, but any shortfall is yours. Ask the agent to run it on your numbers."]},
+ {k:"3 · Representation",t:"What the brokerage will do for you, and where conflicts can arise",pg:3,y:[0.5,0.88],
+  say:["You confirm you were given written information on the different kinds of agent relationships.","The brokerage will help you find a home and try to get your offer accepted.","You accept that you may not see every property. Your offer terms are kept private from other buyers. The brokerage may also work for other buyers who want the same homes, and you agree that is not a conflict.","You name the brokerage to receive formal notices for you on an offer.","<b>Multiple representation:</b> if the brokerage also represents the seller of a home you want, it must get your written consent before any offer. It then has to treat both sides evenly and share factual information about the home.","Even then, the brokerage will not say the seller will take less, that you would pay more, either side's motivation, or what price you should offer. It will not tell you about the other offers' terms.","The brokerage cannot receive notices for either side when it represents both."],
+  watch:["Ask how the brokerage handles it if one of its own listings is a home you want.","The newer rules use \"designated representation\", where individual agents are named. Check how your copy handles this."]},
+ {k:"4 · Referral",t:"Working only through the brokerage",pg:4,y:[0.12,0.27],
+  say:["For the term, you work only with this brokerage and you deal honestly with them.","You must tell the brokerage right away about any home that catches your eye, however you found it: open house, a sign, online, or a builder's sales centre.","Your offers must go through the brokerage.","If you buy a matching home you found during the term, you owe the commission within five days of a written request."],
+  watch:["This includes homes you find on your own. See part 7 on registering with builders: tell your agent before you visit a sales centre alone."]},
+ {k:"5 · Indemnification",t:"The agent is not a home inspector",pg:4,y:[0.27,0.37],
+  say:["Agents are trained in real estate but cannot judge the physical condition of a home.","The brokerage is not liable for defects, hidden or visible.","Information from the seller or listing brokerage may not be checked, and you rely on it at your own risk.","You were told to make your own enquiries."],
+  watch:["This is why inspections and, on a condo, the status certificate matter. See part 9."]},
+ {k:"6 · Finder's fee",t:"Other payments the brokerage may receive",pg:4,y:[0.37,0.43],
+  say:["The brokerage may receive a referral fee or reward, for example from a company it recommends, on top of its commission.","By signing, you consent to the brokerage keeping it."],
+  watch:["Ask whether the brokerage gets paid for any referrals it makes to you, such as a mortgage broker, lawyer or inspector, and ask to be told when it happens."]},
+ {k:"7 · Consumer reports",t:"Credit checks",pg:4,y:[0.43,0.49],
+  say:["A report with credit or personal information may be used in connection with your purchase."],
+  watch:[]},
+ {k:"8 · Your information",t:"How your information is used",pg:4,y:[0.49,0.68],
+  say:["You allow the brokerage to use your personal information to do its job: finding and assessing homes, advertising on your behalf, and giving details to people you hire, like lenders and inspectors.","Details of a home you buy through the brokerage may be kept and shared with the real estate board for reporting, appraisal and statistics.","That information may be stored on databases outside Canada, where it falls under local laws."],
+  watch:["If you are uneasy about any of this, ask who gets your information and for what."]},
+ {k:"9 · Conflicts",t:"Added terms win, and the paper is the whole deal",pg:4,y:[0.685,0.77],
+  say:["Anything added to the agreement, usually in a schedule, overrides the pre-printed text if the two clash.","This written agreement is the entire deal. Promises made out loud do not count."],
+  watch:["If the agent promised something, such as a lower fee or an easy way out, ask for it to be written in."]},
+ {k:"10–11 · Heirs and electronic copies",t:"Who is bound, and signing electronically",pg:4,y:[0.775,0.88],
+  say:["If one of the signers dies, their heirs and estate are still bound.","The agreement and notices can be sent electronically, and electronic signatures count as originals.","Sending it back electronically confirms that you kept a copy."],
+  watch:["Save your copy as soon as you sign."]},
+ {k:"12–13 · E-signatures and schedules",t:"Where extra terms go",pg:5,y:[0.04,0.13],
+  say:["You agree that an electronic signature is valid.","If a schedule or form is attached, it is named here and becomes part of the agreement."],
+  watch:["Anything you negotiate, such as a shorter term, one named property, or a way to end the agreement early, belongs in a schedule. Ask the brokerage whether it will agree."]},
+ {k:"Signing",t:"What your signature means",pg:5,y:[0.165,0.7],
+  say:["The brokerage states that it will represent you in finding a home and trying to get an offer accepted on terms you are happy with.","You sign to say you have read and understood it, and you sign \"under seal\", a formal way of showing you intend to be legally bound.","The salesperson declares they carry the insurance that Ontario's rules require.","At the end you acknowledge you received a copy. Make sure you really did."],
+  watch:["Do not sign until you have read the whole thing, including the clauses above.","Take a copy with you, and keep it where you can find it."]}
+];
+let BR={i:0,imgs:[],pgSel:{},hl:false};
+function wire(c){
+  const bars=[78,92,60,88,70,95,55,84,90,66,82,75,93,58,86,72,80,62,89,77,68,91,64,85,73,96,59,81];
+  const ys=bars.map((w,i)=>`<rect x="8" y="${10+i*4}" width="${w*0.84}" height="1.6" rx=".8" fill="currentColor" opacity=".18"/>`).join('');
+  const [a,b]=c.y;
+  return `<svg viewBox="0 0 100 130" role="img" aria-label="Where this clause sits on page ${c.pg-1} of the form, shown as a rough diagram" style="width:100%;height:auto;display:block;color:var(--ink-2)"><rect x="0.5" y="0.5" width="99" height="129" rx="3" fill="var(--surface)" stroke="var(--line)"/>${ys}<rect x="3" y="${a*130}" width="94" height="${(b-a)*130}" rx="2" fill="var(--accent)" opacity=".22" stroke="var(--accent)" stroke-width=".8"/></svg>`;
+}
+function braViz(c){
+  const n=BR.imgs.length;
+  if(!n) return `<div class="bfig">${wire(c)}<p class="fine" style="margin:6px 0 0;text-align:center">Rough position on page ${c.pg-1} of the form. Add photos of your copy above to see the real page.</p></div>`;
+  const def=Math.max(0,Math.min(n-1,c.pg-2));
+  const sel=BR.pgSel[c.k]!==undefined?BR.pgSel[c.k]:def;
+  const src=BR.imgs[sel].url;
+  const [a,b]=c.y;
+  const opts=BR.imgs.map((m,i)=>`<option value="${i}"${i===sel?' selected':''}>Photo ${i+1}</option>`).join('');
+  return `<div class="bfig"><div style="position:relative"><a href="${src}" target="_blank" rel="noopener"><img src="${src}" alt="Your photo of the form, ${BR.imgs[sel].name}" style="width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:6px"></a>${BR.hl?`<div style="position:absolute;left:2%;right:2%;top:${a*100}%;height:${(b-a)*100}%;background:var(--accent);opacity:.22;border:2px solid var(--accent);border-radius:4px;pointer-events:none"></div>`:''}</div>
+   <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px"><label class="fine" style="margin:0" for="bPg">Showing</label><select id="bPg" data-clk="${c.k}" style="min-height:36px">${opts}</select>
+   <label class="fine" style="margin:0;display:flex;gap:6px;align-items:center"><input type="checkbox" id="bHl"${BR.hl?' checked':''}> Highlight the clause (matches the 2020 layout only)</label></div></div>`;
+}
+function renderBra(){
+  const c=BCL[BR.i], ul=a=>a.length?`<ul class="list">${a.map(x=>`<li>${x}</li>`).join('')}</ul>`:'';
+  const chips=BCL.map((x,i)=>`<button type="button" class="btn ghost small${i===BR.i?' on':''}" data-cl="${i}" aria-pressed="${i===BR.i}" style="${i===BR.i?'background:var(--accent-soft);border-color:var(--accent)':''}">${x.k}</button>`).join(' ');
+  $('#braView').innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px" role="group" aria-label="Clauses">${chips}</div>
+   <div class="card panel"><div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,260px);gap:24px;align-items:start" class="bgrid">
+    <div><p class="eyebrow" style="margin-bottom:4px">${c.k}</p><h3 style="font-size:24px;margin:0 0 12px">${c.t}</h3>
+     <h4 style="margin:0 0 4px">In plain English</h4>${ul(c.say)}
+     ${c.watch.length?`<h4 style="margin:16px 0 4px">What to ask or check</h4>${ul(c.watch)}`:''}</div>
+    <div>${braViz(c)}</div></div>
+    <div style="display:flex;justify-content:space-between;margin-top:18px;gap:8px"><button type="button" class="btn ghost small" data-bstep="-1"${BR.i===0?' disabled':''}>Back</button><span class="fine" style="margin:0;align-self:center">${BR.i+1} of ${BCL.length}</span><button type="button" class="btn small" data-bstep="1"${BR.i===BCL.length-1?' disabled':''}>Next</button></div></div>`;
+}
+function buildBra(){
+  const ck=ckLoad(); let n=300;
+  const qs=["Show me the commission clause in dollars on a home like the ones we are looking at.","What happens if the seller's side offers less than the amount in this agreement?","How many days is the holdover, and which homes does it apply to?","How can I end this agreement early, and what does it cost?","Do you or the brokerage receive any referral fees, and will you tell me when you do?","Who is my agent at the brokerage, and who covers for them?","Can we add a shorter term or a named area in a schedule?"];
+  $('#braTop').innerHTML=`<div class="note warn" style="margin:0 0 20px;max-width:78ch"><strong>Use your current form.</strong> This walkthrough follows the clause order of OREA Form 300 as it was revised in 2020, which refers to the old Real Estate and Business Brokers Act. Ontario's new Trust in Real Estate Services Act took effect on December 1, 2023, and the form has been revised since, so clause numbers, pages and some wording will differ. Check each point against the form you will actually sign. The explanations are written in our own words and are not legal advice.</div>
+   <div class="card" style="margin-bottom:16px"><h3 style="font-size:18px;margin:0 0 4px">Add photos of your copy</h3><p class="hint" style="margin:0 0 8px">The form belongs to the Ontario Real Estate Association and is licensed to its members, so it is not built into this page. Choose photos or screenshots of your copy, one per page, in order. They stay in this browser tab only and are not uploaded or saved.</p>
+    <input type="file" id="braFile" accept="image/*" multiple aria-label="Photos of the form pages"><div id="braThumbs" class="fine" style="margin-top:8px"></div></div>`;
+  $('#braEnd').innerHTML=`<div class="card panel"><h3 style="font-size:20px;margin:0 0 8px">Questions to ask before signing</h3><ul class="ck">${qs.map(i=>{n++;const id='ck'+n;return `<li><label for="${id}"><input type="checkbox" id="${id}" data-ck="${id}" ${ck[id]?'checked':''}><span>${i}</span></label></li>`}).join('')}</ul></div>
+   <p class="fine">Follows the clause order of OREA Form 300 (revised 2020). For the current rules, see summaries such as ${lk('https://arthurzhao.realtor/2026/04/05/article-147-buyer-representation-agreement-en/','this broker explainer')} and ${lk('https://www.getwhatyouwant.ca/real-estate-paperwork-explained-ontario-buyers','this buyer guide')}, then confirm with your brokerage and, if you want, a lawyer.</p>`;
+  renderBra();
+}
+function braThumbs(){
+  $('#braThumbs').innerHTML=BR.imgs.length?BR.imgs.map((m,i)=>`Photo ${i+1}: ${m.name.replace(/</g,'')} <button type="button" class="btn ghost small" data-brm="${i}" aria-label="Remove photo ${i+1}">Remove</button>`).join('<br>'):'';
+}
+$('#s9').addEventListener('click',e=>{
+  const t=e.target.closest&&e.target.closest('[data-cl],[data-bstep],[data-brm]'); if(!t) return;
+  if(t.dataset.cl!==undefined){BR.i=+t.dataset.cl}
+  else if(t.dataset.bstep!==undefined){BR.i=Math.max(0,Math.min(BCL.length-1,BR.i+ +t.dataset.bstep))}
+  else if(t.dataset.brm!==undefined){const m=BR.imgs.splice(+t.dataset.brm,1)[0]; try{URL.revokeObjectURL(m.url)}catch(_){} BR.pgSel={}; braThumbs()}
+  renderBra();
+});
+$('#s9').addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='braFile'){
+    const fs=[...t.files].filter(f=>/^image\//.test(f.type)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+    BR.imgs.forEach(m=>{try{URL.revokeObjectURL(m.url)}catch(_){}});
+    BR.imgs=fs.map(f=>({name:f.name,url:URL.createObjectURL(f)})); BR.pgSel={}; braThumbs(); renderBra();
+  } else if(t.id==='bPg'){BR.pgSel[t.dataset.clk]=+t.value; renderBra()}
+  else if(t.id==='bHl'){BR.hl=t.checked; renderBra()}
+  else if(t.matches&&t.matches('[data-ck]')){const o=ckLoad();o[t.dataset.ck]=t.checked;ckSave(o)}
+});
+
+/* ---------- Part 11: neighbourhood ---------- */
+const NB_CATS=[['Restaurants','restaurants'],['Cafés','cafes'],['Groceries','grocery stores'],['Schools','schools'],['Parks','parks'],['Transit stops','transit stops'],['Gyms','gyms'],['Clinics and hospitals','medical clinics']];
+function mapsUrl(q){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q)}
+function buildNb(){
+  const areas=(typeof areaNames==='function'?areaNames():[]);
+  const ul=a=>`<ul class="list">${a.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  $('#nbBox').innerHTML=`<div class="card panel"><h3 style="font-size:20px;margin:0 0 4px">Look around an address</h3>
+    <p class="hint" style="margin:0 0 8px">Type the address of a home, or a neighbourhood name. Then open the tools below with that address filled in.</p>
+    <div class="field" style="max-width:520px"><label for="nbAddr">Address or neighbourhood</label><input id="nbAddr" type="text" placeholder="123 Main St, Etobicoke, ON" autocomplete="off"></div>
+    ${areas.length?`<p class="fine" style="margin:8px 0 4px">Or use an area you chose in part 1:</p><div class="chips">${areas.map(a=>`<button type="button" class="chip" data-nba="${esc(a)}">${esc(a)}</button>`).join('')}</div>`:''}
+    <div id="nbLinks" style="margin-top:14px"></div></div>
+   <div class="pg" style="margin-top:16px"><article class="pc"><div class="pt"><h4>Neighbourhood map</h4></div><p class="pv">Restaurants, schools and parks</p><p>See the most popular places within walking distance of the address, with Google ratings and review counts.</p><p style="margin-top:12px"><a class="btn small" id="nbMapBtn" href="neighbourhood-map.html">Open the neighbourhood map</a></p></article>
+   <article class="pc"><div class="pt"><h4>School boundary viewer</h4></div><p class="pv">TDSB and TCDSB boundaries</p><p>Pick a school to see the area it serves, by program. Always confirm with the school board before relying on a boundary.</p><p style="margin-top:12px"><a class="btn small" href="school-boundaries.html">Open the school boundary viewer</a></p></article></div>
+   <div class="pg" style="margin-top:16px"><article class="pc"><div class="pt"><h4>When you visit in person</h4></div><p class="pv">Go more than once</p><p>A single showing tells you about the home. Another visit tells you about the street.</p><details open><summary>The details</summary>${ul(['Go at different times: a weekday morning, an evening rush hour and a weekend night.','Walk it. Check how far the groceries, transit and park really are, not just how far they look on the map.','Do the commute you will actually make, at the time you will make it.','Listen for noise from roads, rail lines, flight paths, nightlife and construction.','Look for nearby development and for anything planned. Ask the city or your agent what is coming.','Check parking if you have a car, and visitor parking in a condo.'])}</details></article>
+   <article class="pc"><div class="pt"><h4>Schools</h4></div><p class="pv">Confirm the boundary yourself</p><p>School assignments depend on the address, and boundaries change.</p><details open><summary>The details</summary>${ul(['Ask the school board which school serves the exact address, and whether it has space.','Do not rely on a listing, an agent or a map to say a home is "in the catchment".','Ask about programs you care about, such as French immersion, which may have separate rules.'])}</details></article></div>`;
+  updateNb();
+}
+function updateNb(){
+  const a=($('#nbAddr')||{}).value||'', box=$('#nbLinks'); if(!box) return;
+  const t=a.trim();
+  const mb=$('#nbMapBtn'); if(mb) mb.href='neighbourhood-map.html'+(t?'?address='+encodeURIComponent(t):'');
+  if(!t){box.innerHTML='<p class="fine">Enter an address or pick an area to see quick Google Maps searches.</p>';return}
+  box.innerHTML=`<p class="fine" style="margin:0 0 8px">Quick searches on Google Maps (opens a new tab):</p><p style="margin:0 0 8px"><a class="btn ghost small" href="${mapsUrl(t)}" target="_blank" rel="noopener">Show on the map</a></p><div style="display:flex;flex-wrap:wrap;gap:8px">${NB_CATS.map(c=>`<a class="btn ghost small" href="${mapsUrl(c[1]+' near '+t)}" target="_blank" rel="noopener">${c[0]}</a>`).join('')}</div>`;
+}
+$('#s10').addEventListener('input',e=>{ if(e.target.id==='nbAddr') updateNb() });
+$('#s10').addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('[data-nba]'); if(!b) return;
+  $('#nbAddr').value=b.dataset.nba; updateNb();
+});
+
+/* ---------- Part 5: insured vs uninsured ---------- */
+let C={insDown:0,adv:0,amortUn:0};
+function buildIns(){
+  C={insDown:0,adv:0,amortUn:0};
+  $('#insIn').innerHTML=`<div class="three">
+    <div class="field"><label for="insDown">Insured down payment <span class="sub">blank = minimum</span></label>
+      <div class="pre"><span>$</span><input id="insDown" type="number" min="0" step="5000" placeholder="Minimum"></div>
+      <p class="fine" id="insMin" style="margin:0"></p></div>
+    <div class="field"><label for="insAdv">Insured rate advantage <span class="sub">points</span></label>
+      <input id="insAdv" type="number" min="0" max="2" step="0.05" value="0">
+      <p class="fine" style="margin:0">Insured mortgages are often priced a little lower. Enter the gap from your two quotes.</p></div>
+    <div class="field"><label for="insAmort">Uninsured amortization</label>
+      <select id="insAmort"><option value="0">Same as part 4</option><option value="25">25 years</option><option value="30">30 years</option></select></div>
+  </div>`;
+}
+$('#insIn').addEventListener('submit',e=>e.preventDefault());
+$('#insIn').addEventListener('input',e=>{
+  const id=e.target.id, v=e.target.value;
+  if(id==='insDown') C.insDown=num(v);
+  else if(id==='insAdv'){const x=parseFloat(v);C.adv=isFinite(x)?Math.max(0,x):0}
+  else if(id==='insAmort') C.amortUn=parseInt(v,10)||0;
+  else return;
+  updateIns();
+});
+
+function updateIns(){
+  const box=$('#insOut'); if(!box||!M) return;
+  if(M.view==='invest'){box.innerHTML='<div class="note">Mortgage insurance is only available on a home you will live in. Investment properties need at least 20% down, so there is nothing to compare. Switch part 4 to "A home to live in" to see this comparison.</div>';return}
+  if(M.price>=1500000){box.innerHTML='<div class="note">Insured mortgages are only available on homes priced under $1,500,000. At this price the minimum down payment is already 20%, so there is no insured option. Lower the price in part 4 to see the comparison.</div>';return}
+  const c=insCompare(S,M,C), A=c.A, B=c.B, P=M.price, y=M.years;
+  const sA=A.series[y], sB=B.series[y], nA=c.series[y].nwA, nB=c.series[y].nwB, d=nA-nB;
+  const minEl=$('#insMin'); if(minEl) minEl.textContent='Minimum for '+fm(P)+': '+fm(c.minD);
+  const adv=C.adv||0, amUn=C.amortUn||M.amort;
+  const warn=M.down<c.minD-1?`<div class="note warn" style="margin-bottom:16px"><strong>Your down payment in part 4 is under the minimum.</strong> At ${fm(P)} the minimum is ${fm(c.minD)}, so you would need ${fm(c.minD-M.down)} more even to buy with insurance.</div>`:'';
+  const head=Math.abs(d)<1000?`The two come out about even after ${y} ${y===1?'year':'years'}.`
+    :d>0?`Going insured leaves you about ${fm(d)} ahead after ${y} ${y===1?'year':'years'}.`
+    :`Putting 20% down leaves you about ${fm(-d)} ahead after ${y} ${y===1?'year':'years'}.`;
+  const reach=M.down>=c.dB-1?`Your ${fm(M.down)} is enough to skip insurance at this price.`:`At ${fm(P)} you would need ${fm(c.dB-M.down)} more to skip insurance. Waiting to save it avoids the premium, but prices can move while you save.`;
+  const verdict=`<div class="verdict"><h3>${head}</h3>
+    <p>Insurance costs you ${fm(A.prem+A.pst)} in premium and tax. In return you keep ${fm(c.leftA)} of cash that the 20%-down buyer puts into the house. ${reach}</p>
+    <p>This assumes you invest the cash you keep at ${M.invr}% and that both homes grow ${M.appr}% a year. If that cash would be spent instead, the insured route simply costs you the premium. Both sides spend the same total each month, and whoever has the lower payment invests the difference.</p></div>`;
+  const row=(l,a,b,cls)=>`<tr${cls?` class="${cls}"`:''}><td>${l}</td><td>${a}</td><td>${b}</td></tr>`;
+  const table=`<div class="tw"><table><thead><tr><th></th><th>Insured, ${fm(A.down)} down</th><th>Uninsured, 20% down</th></tr></thead><tbody>
+    ${row('Down payment',fm(A.down),fm(B.down))}
+    ${row('Insurance premium, added to the mortgage',fm(A.prem),fm(0))}
+    ${row('Sales tax on the premium, paid in cash',fm(A.pst),fm(0))}
+    ${row('Cash needed at closing',fm(A.cashInv),fm(B.cashInv),'base')}
+    ${row('Mortgage amount',fm(A.loan),fm(B.loan))}
+    ${row('Interest rate',(Math.max(0.5,M.rate-adv)).toFixed(2)+'%',M.rate.toFixed(2)+'%')}
+    ${row('Amortization',A.amort+' years',B.amort+' years')}
+    ${row('Monthly payment',fm(A.pmt),fm(B.pmt))}
+    ${row('Interest paid over '+y+(y===1?' year':' years'),fm(sA.cumInterest),fm(sB.cumInterest))}
+    ${row('Mortgage balance after '+y+(y===1?' year':' years'),fm(sA.bal),fm(sB.bal))}
+    ${row('Cash kept and invested',fm(c.leftA),fm(c.leftB))}
+    ${row('Net worth after '+y+(y===1?' year':' years'),fm(nA),fm(nB),'base')}</tbody></table></div>
+    <p class="fine">Net worth is home value minus 4% selling costs and the mortgage, plus the invested cash. ${c.needA>0?`Insured needs ${fm(c.needA)} more cash than the 20%-down pot to cover its closing costs.`:''} The comparison assumes you could put 20% down, so it holds even if you cannot yet.</p>`;
+  const downs=[c.minD,0.10*P,0.15*P,0.2*P].filter((x,i,a)=>x>=c.minD-1&&a.findIndex(z=>Math.abs(z-x)<1)===i).sort((a,b)=>a-b);
+  const ladder=downs.map(x=>{
+    const un=x>=0.2*P-1;
+    const r=model(Object.assign({},S,{down:x}),Object.assign({},M,{view:'own',amort:un?(C.amortUn||M.amort):M.amort,rate:un?M.rate:Math.max(0.5,M.rate-adv)}));
+    const pr=r.prem?(r.prem/(P-r.down)*100).toFixed(2)+'%':'None';
+    return `<tr${un?' class="base"':''}><td>${fm(r.down)}</td><td>${(r.down/P*100).toFixed(1)}%</td><td>${pr}</td><td>${fm(r.prem)}</td><td>${fm(r.pst)}</td><td>${fm(r.cashInv)}</td><td>${fm(r.pmt)}</td></tr>`;
+  }).join('');
+  const lad=`<h3 style="font-size:20px;margin:28px 0 4px">What each down payment costs at ${fm(P)}</h3>
+    <p class="hint" style="margin-bottom:0">The premium rate falls as the down payment grows, and disappears at 20%.</p>
+    <div class="tw"><table><thead><tr><th>Down payment</th><th>Of price</th><th>Premium rate</th><th>Premium</th><th>Tax on premium</th><th>Cash at closing</th><th>Monthly payment</th></tr></thead><tbody>${ladder}</tbody></table></div>`;
+  const pfA=c.series[y].pfA;
+  const dInt=sA.cumInterest-sB.cumInterest;
+  const li=a=>a.filter(Boolean).map(t=>`<li>${t}</li>`).join('');
+  const insPros=[
+    `Buy with ${fm(A.down)} down instead of ${fm(B.down)}, which leaves ${fm(B.down-A.down)} in your hands.`,
+    A.amort===30?'A 30-year amortization is open to you as a first-time buyer or new-build buyer, which lowers the payment.':'',
+    'Lenders often charge a little less interest on insured mortgages. Ask for both quotes and enter the gap above.',
+    c.leftA>0?`The ${fm(c.leftA)} you keep would grow to about ${fm(pfA)} over ${y} ${y===1?'year':'years'} at ${M.invr}%.`:'',
+    'Energy-efficient new builds and large upgrades can earn back 25% of the premium (CMHC Eco Plus and Eco Improvement).'];
+  const insCons=[
+    `The ${fm(A.prem)} premium is added to your mortgage, so you pay interest on it too.`,
+    `${fm(A.pst)} of sales tax on the premium is due in cash at closing and cannot be added to the mortgage.`,
+    `A bigger mortgage, ${fm(A.loan)} against ${fm(B.loan)}, means ${fm(Math.abs(dInt))} ${dInt>=0?'more':'less'} interest over ${y} ${y===1?'year':'years'}.`,
+    M.amort===30&&A.amort===25?'A 30-year insured mortgage is limited to first-time buyers and new builds, so this comparison uses 25 years for the insured side.':'',
+    'Only available for a home you live in, priced under $1,500,000.'];
+  const unPros=[
+    `No premium and no tax, which saves ${fm(A.prem+A.pst)} compared with insurance.`,
+    `More equity from day one: ${fm(B.down)} down and a mortgage ${fm(A.loan-B.loan)} smaller.`,
+    B.pmt<A.pmt?`A lower monthly payment, ${fm(B.pmt)} against ${fm(A.pmt)}.`:'',
+    'No $1,500,000 ceiling, and the only route for a rental property.'];
+  const unCons=[
+    `You need ${fm(B.down)} down, ${fm(B.down-A.down)} more than the insured minimum.${M.down<B.down?` You entered ${fm(M.down)} in part 4, so you are ${fm(B.down-M.down)} short today.`:''}`,
+    `That cash is locked into the house instead of earning ${M.invr}% elsewhere.`,
+    'Rates can be slightly higher than an insured quote, so compare both.'];
+  const pc=`<div class="cols">
+    <div class="card pc2"><h4>Insured mortgage</h4><h5 class="pro">Pros</h5><ul>${li(insPros)}</ul><h5 class="con">Cons</h5><ul>${li(insCons)}</ul></div>
+    <div class="card pc2"><h4>Uninsured mortgage</h4><h5 class="pro">Pros</h5><ul>${li(unPros)}</ul><h5 class="con">Cons</h5><ul>${li(unCons)}</ul></div></div>`;
+  box.innerHTML=`${warn}${verdict}<div class="card panel">${table}${lad}</div>${pc}`;
+}
+
+function seg(id,opts,cur){return `<div class="seg2" role="group" aria-label="${id}">${opts.map(o=>`<button type="button" data-m="${id}" data-v="${o[0]}" aria-pressed="${cur===o[0]?'true':'false'}">${o[1]}</button>`).join('')}</div>`}
+function buildInputs(){
+  const inv=M.view==='invest';
+  $('#inputs').innerHTML=`
+   <div class="field"><span class="lab">I am looking at</span>${seg('view',[['own','A home to live in'],['invest','An investment']],M.view)}</div>
+   <div class="field"><span class="lab">Property type</span>${seg('type',[['condo','Condo'],['house','House']],M.type)}</div>
+   <div class="field"><span class="lab">Location</span>${seg('loc',[['1','City of Toronto'],['0','Outside Toronto']],M.loc?'1':'0')}</div>
+   <div class="field"><label for="down">Down payment</label>
+     <div class="pre"><span>$</span><input id="down" type="number" min="0" step="5000" value="${M.down}"></div></div>
+   <div class="field"><label for="price">Purchase price</label>
+     <div class="pre"><span>$</span><input id="price" type="number" min="200000" max="2000000" step="5000" value="${M.price}"></div>
+     <input id="priceR" type="range" min="200000" max="2000000" step="5000" value="${M.price}" aria-label="Purchase price slider"></div>
+   <div class="field"><label for="rent" id="rentL">${inv?'Rent you could charge':'Rent you would pay instead'} <span class="sub">per month</span></label>
+     <div class="pre"><span>$</span><input id="rent" type="number" min="0" step="50" value="${M.rent}"></div>
+     <p class="fine" style="margin:0">Starting estimate, not market data. Enter a real listing or quote.</p></div>
+   <div class="two">
+     <div class="field"><label for="rate">Mortgage rate %</label><input id="rate" type="number" min="1" max="12" step="0.01" value="${M.rate}"></div>
+     <div class="field"><label for="amort">Amortization</label><select id="amort"><option value="25" ${M.amort===25?'selected':''}>25 years</option><option value="30" ${M.amort===30?'selected':''}>30 years</option></select></div>
+   </div>
+   <p class="fine" style="margin-top:6px">4.34% is the lowest advertised 5-year fixed in June 2026 per <a href="${SRC_RATE}" target="_blank" rel="noopener">Ratehub</a>. Use your pre-approval rate.</p>
+   <div class="two">
+     <div class="field"><label for="taxr">Property tax % of value</label><input id="taxr" type="number" min="0.2" max="2" step="0.05" value="${M.taxr}"></div>
+     <div class="field" id="feeF" ${M.type==='condo'?'':'hidden'}><label for="fee">Condo fees <span class="sub">per month</span></label><input id="fee" type="number" min="0" step="25" value="${M.fee}"></div>
+   </div>
+   <div class="field"><div class="rng"><label for="years">How long you would own it</label><output id="yearsO">${M.years} yrs</output></div><input id="years" type="range" min="1" max="15" step="1" value="${M.years}"></div>
+   <div class="field"><div class="rng"><label for="appr">Home price growth per year</label><output id="apprO">${M.appr}%</output></div><input id="appr" type="range" min="-2" max="8" step="0.5" value="${M.appr}"></div>
+   <div class="field" id="invF"><div class="rng"><label for="invr">Return if you invest instead</label><output id="invrO">${M.invr}%</output></div><input id="invr" type="range" min="0" max="10" step="0.5" value="${M.invr}"></div>
+   <div class="field" id="rgF"><div class="rng"><label for="rg">Rent increase per year</label><output id="rgO">${M.rg}%</output></div><input id="rg" type="range" min="0" max="6" step="0.5" value="${M.rg}"></div>`;
+  $('#rgF').hidden=inv;
+}
+
+function syncInputs(){
+  $('#price').value=M.price;$('#priceR').value=M.price;$('#rent').value=M.rent;
+  $('#feeF').hidden=M.type!=='condo';
+  $('#rentL').firstChild.nodeValue=(M.view==='invest'?'Rent you could charge':'Rent you would pay instead')+' ';
+  $('#rgF').hidden=M.view==='invest';
+  $('#inputs').querySelectorAll('[data-m]').forEach(b=>{
+    const k=b.dataset.m, cur=k==='loc'?(M.loc?'1':'0'):M[k];
+    b.setAttribute('aria-pressed',String(b.dataset.v===cur));
+  });
+}
+
+$('#inputs').addEventListener('submit',e=>e.preventDefault());
+$('#inputs').addEventListener('click',e=>{
+  const b=e.target.closest('[data-m]'); if(!b) return;
+  const k=b.dataset.m, v=b.dataset.v;
+  if(k==='loc') M.loc=v==='1';
+  else if(k==='type'){M.type=v;const d=defaultsFor(v,M.view);M.price=d.price;M.rent=d.rent}
+  else if(k==='view'){M.view=v;const d=defaultsFor(M.type,v);M.price=d.price;M.rent=d.rent}
+  syncInputs(); update();
+});
+$('#inputs').addEventListener('input',e=>{
+  const id=e.target.id, v=e.target.value;
+  const map={down:'down',price:'price',priceR:'price',rent:'rent',rate:'rate',amort:'amort',taxr:'taxr',fee:'fee',years:'years',appr:'appr',invr:'invr',rg:'rg'};
+  if(!map[id]) return;
+  let x=parseFloat(v); if(!isFinite(x)) return;
+  if(id==='amort') x=parseInt(v,10);
+  if(map[id]==='price'){x=Math.max(100000,x);M.price=x;$('#price').value===String(x)||0;if(id==='priceR')$('#price').value=x;else $('#priceR').value=x}
+  else M[map[id]]=x;
+  if(id==='years')$('#yearsO').textContent=x+' yrs';
+  if(id==='appr')$('#apprO').textContent=x+'%';
+  if(id==='invr')$('#invrO').textContent=x+'%';
+  if(id==='rg')$('#rgO').textContent=x+'%';
+  update();
+});
+
+let lastR=null;
+function update(){
+  const R=model(Object.assign({},S,{down:M.down}),M); lastR=R;
+  $('#reads').innerHTML=readsHTML();
+  $('#out').innerHTML=outHTML(R);
+  drawChart(R);
+  updateIns();
+  updateMap();
+}
+
+function breakevenYear(R){
+  let t=null;
+  for(let k=R.series.length-1;k>=1;k--){ if(R.series[k].buy>=R.series[k].rent) t=k; else break; }
+  return t;
+}
+
+function outHTML(R){
+  const inv=M.view==='invest', y=M.years, last=R.series[y];
+  const warn=R.short?`<div class="note warn" style="margin-bottom:16px"><strong>Your down payment is under the minimum for this price.</strong> ${inv?'Investment properties need 20% down, which is':'The rules require'} ${fm(R.minDown)} at ${fm(R.P)}. The numbers below use that amount, so you would need ${fm(R.minDown-M.down)} more, or a lower price.</div>`:'';
+  let verdict,legendA,legendB;
+  if(!inv){
+    const diff=last.buy-last.rent, be=breakevenYear(R);
+    const head=diff>=0?`Buying comes out ahead by about ${fm(diff)} after ${y} ${y===1?'year':'years'}.`:`Renting and investing the difference stays ahead by about ${fm(-diff)} after ${y} ${y===1?'year':'years'}.`;
+    const tail=be===null?'At these numbers buying does not catch up within 15 years.':be<=y&&diff>=0?`Buying pulls ahead in year ${be} and stays there.`:`Buying pulls ahead in year ${be}.`;
+    verdict=`<div class="verdict"><h3>${head}</h3><p>${tail} In year one, owning costs ${fm(R.own1)} a month against ${fm(M.rent)} in rent, ${R.own1>M.rent?fm(R.own1-M.rent)+' more':fm(M.rent-R.own1)+' less'} to own.</p>
+      <p>Both sides are compared as net worth after selling costs (4% of the sale price). The renter invests the down payment, closing costs and any monthly difference.</p></div>`;
+    legendA='Buy: home value minus mortgage and selling costs';legendB='Rent: the same cash invested';
+  } else {
+    const endVal=last.propNW, ann=endVal>0?Math.pow(endVal/R.cashInv,1/y)-1:-1;
+    const cls=R.cf1>=0?'pos':'neg';
+    verdict=`<div class="verdict"><h3>Month-to-month, this property ${R.cf1>=0?'pays you':'costs you'} <span class="${cls}">${fm(Math.abs(R.cf1))}</span>.</h3>
+      <p>Cap rate ${(R.cap*100).toFixed(1)}%, cash-on-cash return ${(R.coc*100).toFixed(1)}% in year one. Over ${y} ${y===1?'year':'years'} your ${fm(R.cashInv)} of cash would grow about ${(ann*100).toFixed(1)}% a year including appreciation, against ${M.invr}% if invested elsewhere. Rent needed to cover every cost: ${fm(R.beRent)} a month.</p>
+      <p>Before income tax and capital gains tax, and assuming ${Math.round(VAC*100)}% vacancy.</p></div>`;
+    legendA='Property: equity plus cumulative cash flow';legendB='Same cash invested elsewhere';
+  }
+  const rowsMonthly=`<div><span>Mortgage payment</span><span>${fm(R.pmt)}</span></div>
+    <div><span>Property tax</span><span>${fm(R.tax1)}</span></div>
+    <div><span>Insurance</span><span>${fm(R.ins1)}</span></div>
+    <div><span>${M.type==='condo'?'Condo fees':'Repairs and upkeep (1% a year)'}</span><span>${fm(R.fee1)}</span></div>
+    <div class="tot"><span>Total to own</span><span>${fm(R.own1)}</span></div>
+    ${inv?`<div><span>Rent after ${Math.round(VAC*100)}% vacancy</span><span>${fm(M.rent*(1-VAC))}</span></div>`:`<div><span>Rent instead</span><span>${fm(M.rent)}</span></div>`}`;
+  const rowsCash=`<div><span>Down payment</span><span>${fm(R.down)}</span></div>
+    <div><span>Land transfer tax${M.loc?' (Ontario and Toronto)':''}</span><span>${fm(R.lt)}</span></div>
+    ${R.rebate?`<div><span>First-time buyer rebates</span><span class="pos">${fm(-R.rebate)}</span></div>`:''}
+    <div><span>Legal, title insurance, adjustments</span><span>${fm(3500)}</span></div>
+    ${R.pst?`<div><span>Sales tax on mortgage insurance (8%)</span><span>${fm(R.pst)}</span></div>`:''}
+    <div class="tot"><span>Cash needed at closing</span><span>${fm(R.cashInv)}</span></div>
+    ${R.insured?`<div><span>Mortgage insurance, added to the loan</span><span>${fm(R.prem)}</span></div>`:''}
+    <div><span>Mortgage amount</span><span>${fm(R.loan)}</span></div>`;
+  const notes=[];
+  if(R.amortCut) notes.push('Insured mortgages are limited to 25 years unless you are a first-time buyer or buying a new build, so 25 years is used.');
+  if(R.insured) notes.push('With under 20% down, mortgage default insurance applies and its premium is added to the mortgage.');
+  const table=`<details><summary>Year-by-year numbers</summary><div class="tw"><table><thead><tr><th>Year</th><th>${inv?'Property':'Buy'}</th><th>${inv?'Invested elsewhere':'Rent and invest'}</th><th>Interest paid</th></tr></thead><tbody>${R.series.filter(s=>s.t>0).map(s=>`<tr><td>${s.t}</td><td>${fm(inv?s.propNW:s.buy)}</td><td>${fm(inv?s.alt:s.rent)}</td><td>${fm(s.cumInterest)}</td></tr>`).join('')}</tbody></table></div></details>`;
+  return `${warn}${verdict}
+   <div class="card panel"><div class="legend"><span><i style="background:var(--chart-a)"></i>${legendA}</span><span><i style="background:var(--chart-b)"></i>${legendB}</span></div>
+     <div class="chart" id="chart" role="img" aria-label="Line chart of ${inv?'property value versus invested cash':'buying versus renting'} net worth over 15 years"></div>${table}</div>
+   <div class="cols"><div class="card"><h4>Monthly, year one</h4><div class="rows">${rowsMonthly}</div></div>
+   <div class="card"><h4>Cash up front</h4><div class="rows">${rowsCash}</div></div></div>
+   ${notes.length?`<p class="fine">${notes.join(' ')}</p>`:''}`;
+}
+
+function niceStep(r){const p=Math.pow(10,Math.floor(Math.log10(r)));const f=r/p;return (f<=1?1:f<=2?2:f<=5?5:10)*p}
+function fk(v){const a=Math.abs(v);const s=a>=1e6?(a/1e6).toFixed(a%1e6===0?0:1)+'M':a>=1e3?Math.round(a/1e3)+'K':String(Math.round(a));return (v<0?'−$':'$')+s}
+function drawChart(R){
+  const box=$('#chart'); if(!box) return;
+  const inv=M.view==='invest', W=Math.max(280,box.clientWidth||600), H=260, L=54, Rr=14, T=12, B=30;
+  const A=R.series.map(s=>inv?s.propNW:s.buy), Bv=R.series.map(s=>inv?s.alt:s.rent);
+  let lo=Math.min.apply(null,A.concat(Bv,[0])), hi=Math.max.apply(null,A.concat(Bv));
+  const st=niceStep((hi-lo)/4||1); lo=Math.floor(lo/st)*st; hi=Math.ceil(hi/st)*st;
+  const x=t=>L+(W-L-Rr)*t/15, yy=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
+  let g='';
+  for(let v=lo;v<=hi+1e-6;v+=st){g+=`<line class="grid" x1="${L}" x2="${W-Rr}" y1="${yy(v)}" y2="${yy(v)}"/><text x="${L-6}" y="${yy(v)+4}" text-anchor="end">${fk(v)}</text>`}
+  const every=W<420?5:1; let xt='';
+  for(let t=0;t<=15;t+=every) xt+=`<text x="${x(t)}" y="${H-10}" text-anchor="middle">${t}</text>`;
+  const path=arr=>arr.map((v,t)=>(t?'L':'M')+x(t).toFixed(1)+' '+yy(v).toFixed(1)).join('');
+  const yrs=M.years;
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">${g}${xt}
+    <text x="${W-Rr}" y="${H-1}" text-anchor="end">years</text>
+    <line class="hz" x1="${x(yrs)}" x2="${x(yrs)}" y1="${T}" y2="${H-B}"/>
+    <path class="lb" d="${path(Bv)}"/><path class="la" d="${path(A)}"/>
+    <circle class="db" cx="${x(yrs)}" cy="${yy(Bv[yrs])}" r="4.5"/><circle class="da" cx="${x(yrs)}" cy="${yy(A[yrs])}" r="4.5"/></svg>`;
+}
+let rz; window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(lastR)drawChart(lastR)},120)});
+
+function footHTML(){
+  return `<h3 style="font-size:22px;margin-bottom:10px">What this does not include</h3>
+  <ul class="list"><li>Whether you qualify. Lenders test your income at a higher rate than the one shown, so a mortgage pre-approval sets the real budget.</li>
+  <li>Income tax. Rent-versus-buy assumes the renter's investments are in a tax-sheltered account, and the sale of your own home is tax-free. Investment properties owe tax on rent and on gains.</li>
+  <li>Rate changes at renewal, special assessments on condos, moving costs and renovations.</li>
+  <li>Land transfer tax is estimated with the standard Ontario and Toronto brackets. Your lawyer confirms the exact amount.</li></ul>
+  <div class="share"><button type="button" class="btn small" id="copy">Copy my answers</button><span id="copied" role="status"></span></div>
+  <p class="fine">Copy them into an email or message to your agent so the conversation starts from here.</p>
+  <textarea id="fallback" readonly hidden aria-label="Your answers, ready to copy"></textarea>`;
+}
+function summaryText(){
+  const lines=['Home buyer guide answers'].concat(answers().map(r=>r[0]+': '+r[1]));
+  if(M&&lastR) lines.push('Scenario: '+fm(M.price)+' '+(M.type==='condo'?'condo':'house')+', '+M.rate+'% for '+lastR.amort+' years, '+fm(lastR.cashInv)+' cash needed at closing.');
+  return lines.join('\n');
+}
+$('#foot').addEventListener('click',e=>{
+  if(e.target.id!=='copy') return;
+  const txt=summaryText(), ok=$('#copied'), fb=$('#fallback');
+  const manual=()=>{fb.hidden=false;fb.value=txt;fb.focus();fb.select();ok.textContent='Select and copy the text below.'};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>{ok.textContent='Copied.';fb.hidden=true},manual)}
+  else manual();
+});
+
+function buildParts(){
+  initM();
+  $('#inc').innerHTML=incentivesHTML();
+  $('#reads').innerHTML=readsHTML();
+  $('#market').innerHTML=marketHTML();
+  buildInputs();
+  buildIns();
+  buildPreContent(); buildPre(); updatePre(); buildRoad(); buildOffer(); buildClose(); buildBra(); buildMap(); buildNb();
+  $('#foot').innerHTML=footHTML();
+  update();
+}
+function submit(){
+  S.done=true;
+  buildParts();
+  renderApp(false);
+  scrollToEl($('#sr')); $('#srh').focus({preventScroll:true});
+}
+
+/* ---------- Tabs ---------- */
+document.querySelector('.tabs').addEventListener('click',e=>{
+  const t=e.target.closest('[data-go]'); if(!t||t.disabled) return;
+  scrollToEl($('#'+t.dataset.go));
+});
+if('IntersectionObserver' in window){
+  const tabs=document.querySelectorAll('.tab');
+  const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){tabs.forEach(t=>t.setAttribute('aria-current',String(t.dataset.go===en.target.id)))}})},{rootMargin:'-35% 0px -55% 0px'});
+  io.observe($('#s1')); io.observe($('#sr')); io.observe($('#s2')); io.observe($('#s3')); io.observe($('#s4')); io.observe($('#s5')); io.observe($('#s6')); io.observe($('#s7')); io.observe($('#s8')); io.observe($('#s9')); io.observe($('#s10'));
+}
+
+$('#skipAll').addEventListener('click',()=>{ if(!S.done) submit(); else scrollToEl($('#sr')) });
+document.addEventListener('click',e=>{const b=e.target.closest('[data-skip]'); if(b) scrollToEl($('#'+b.dataset.skip))});
+renderApp(false);
+buildParts();
+})();
+</script>
+
+</body></html>
