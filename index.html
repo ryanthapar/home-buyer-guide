@@ -1346,23 +1346,44 @@ function buildNb(){
     <div class="field" style="max-width:520px"><label for="nbAddr">Address or neighbourhood</label><input id="nbAddr" type="text" placeholder="123 Main St, Etobicoke, ON" autocomplete="off"></div>
     ${areas.length?`<p class="fine" style="margin:8px 0 4px">Or use an area you chose in part 1:</p><div class="chips">${areas.map(a=>`<button type="button" class="chip" data-nba="${esc(a)}">${esc(a)}</button>`).join('')}</div>`:''}
     <div id="nbLinks" style="margin-top:14px"></div></div>
-   <div class="pg" style="margin-top:16px"><article class="pc"><div class="pt"><h4>Neighbourhood map</h4></div><p class="pv">Restaurants, schools and parks</p><p>See the most popular places within walking distance of the address, with Google ratings and review counts.</p><p style="margin-top:12px"><a class="btn small" id="nbMapBtn" href="neighbourhood-map.html">Open the neighbourhood map</a></p></article>
-   <article class="pc"><div class="pt"><h4>School boundary viewer</h4></div><p class="pv">TDSB and TCDSB boundaries</p><p>Pick a school to see the area it serves, by program. Always confirm with the school board before relying on a boundary.</p><p style="margin-top:12px"><a class="btn small" href="school-boundaries.html">Open the school boundary viewer</a></p></article></div>
+   <div class="card" style="margin-top:16px;padding:0;overflow:hidden">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)" role="group" aria-label="Neighbourhood tools">
+      <button type="button" class="btn small" data-nbt="map" aria-pressed="true">Nearby places</button>
+      <button type="button" class="btn ghost small" data-nbt="school" aria-pressed="false">School boundaries</button>
+      <a class="btn ghost small" id="nbOpen" href="neighbourhood-map.html" target="_blank" rel="noopener" style="margin-left:auto">Open full screen</a>
+    </div>
+    <p class="fine" id="nbTip" style="margin:0;padding:10px 16px"></p>
+    <iframe id="nbFrame" title="Neighbourhood tools" loading="lazy" style="display:block;width:100%;height:720px;border:0;background:var(--surface-2)"></iframe>
+   </div>
    <div class="pg" style="margin-top:16px"><article class="pc"><div class="pt"><h4>When you visit in person</h4></div><p class="pv">Go more than once</p><p>A single showing tells you about the home. Another visit tells you about the street.</p><details open><summary>The details</summary>${ul(['Go at different times: a weekday morning, an evening rush hour and a weekend night.','Walk it. Check how far the groceries, transit and park really are, not just how far they look on the map.','Do the commute you will actually make, at the time you will make it.','Listen for noise from roads, rail lines, flight paths, nightlife and construction.','Look for nearby development and for anything planned. Ask the city or your agent what is coming.','Check parking if you have a car, and visitor parking in a condo.'])}</details></article>
    <article class="pc"><div class="pt"><h4>Schools</h4></div><p class="pv">Confirm the boundary yourself</p><p>School assignments depend on the address, and boundaries change.</p><details open><summary>The details</summary>${ul(['Ask the school board which school serves the exact address, and whether it has space.','Do not rely on a listing, an agent or a map to say a home is "in the catchment".','Ask about programs you care about, such as French immersion, which may have separate rules.'])}</details></article></div>`;
-  updateNb();
+  updateNb(); nbFrame();
+}
+let NB_TAB='map';
+function nbUrl(){
+  const t=(($('#nbAddr')||{}).value||'').trim();
+  return NB_TAB==='map'?'neighbourhood-map.html'+'?embed=1'+(t?'&address='+encodeURIComponent(t):''):'school-boundaries.html?embed=1';
+}
+function nbFrame(){
+  const f=$('#nbFrame'); if(!f) return;
+  const u=nbUrl(); if(f.getAttribute('src')!==u) f.setAttribute('src',u);
+  $('#nbOpen').href=u.replace('embed=1&','').replace('?embed=1','');
+  document.querySelectorAll('[data-nbt]').forEach(b=>{const on=b.dataset.nbt===NB_TAB;b.setAttribute('aria-pressed',String(on));b.className='btn small'+(on?'':' ghost')});
+  $('#nbTip').textContent=NB_TAB==='map'?'Enter an address above and the most popular restaurants, schools and parks within walking distance appear here, with Google ratings.':'Pick a school to see the area it serves, by program. Confirm with the school board before relying on a boundary.';
 }
 function updateNb(){
   const a=($('#nbAddr')||{}).value||'', box=$('#nbLinks'); if(!box) return;
   const t=a.trim();
-  const mb=$('#nbMapBtn'); if(mb) mb.href='neighbourhood-map.html'+(t?'?address='+encodeURIComponent(t):'');
   if(!t){box.innerHTML='<p class="fine">Enter an address or pick an area to see quick Google Maps searches.</p>';return}
   box.innerHTML=`<p class="fine" style="margin:0 0 8px">Quick searches on Google Maps (opens a new tab):</p><p style="margin:0 0 8px"><a class="btn ghost small" href="${mapsUrl(t)}" target="_blank" rel="noopener">Show on the map</a></p><div style="display:flex;flex-wrap:wrap;gap:8px">${NB_CATS.map(c=>`<a class="btn ghost small" href="${mapsUrl(c[1]+' near '+t)}" target="_blank" rel="noopener">${c[0]}</a>`).join('')}</div>`;
 }
 $('#s10').addEventListener('input',e=>{ if(e.target.id==='nbAddr') updateNb() });
+$('#s10').addEventListener('change',e=>{ if(e.target.id==='nbAddr') nbFrame() });
+$('#s10').addEventListener('keydown',e=>{ if(e.target.id==='nbAddr'&&e.key==='Enter'){e.preventDefault();nbFrame()} });
+$('#s10').addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-nbt]'); if(t){NB_TAB=t.dataset.nbt;nbFrame()}});
 $('#s10').addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('[data-nba]'); if(!b) return;
-  $('#nbAddr').value=b.dataset.nba; updateNb();
+  $('#nbAddr').value=b.dataset.nba; updateNb(); nbFrame();
 });
 
 /* ---------- Part 5: insured vs uninsured ---------- */
