@@ -1,106 +1,96 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Homes We Have Sold and Bought | The Thapar Team</title>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="vendor/leaflet/MarkerCluster.css">
-<link rel="stylesheet" href="vendor/leaflet/MarkerCluster.Default.css">
 <style>
-  :root{--bg:#F1F5F3;--surface:#fff;--ink:#10201C;--ink-2:#475953;--line:#CBD7D2;--accent:#0B6B66;--on-accent:#fff;--sold:#0B6B66;--bought:#B2601A;--both:#6741D9}
-  @media (prefers-color-scheme:dark){:root{--bg:#0B1513;--surface:#132220;--ink:#E6F0ED;--ink-2:#9DB2AC;--line:#27403B;--accent:#4DC2B6;--on-accent:#06201D;--sold:#4DC2B6;--bought:#E8A46B;--both:#A593F0}}
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0}
-  body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);display:flex;flex-direction:column}
-  header{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
-  .back{font-size:13px;color:var(--ink-2);text-decoration:none}.back:hover{color:var(--accent);text-decoration:underline}
-  h1{font-size:17px;margin:0 6px 0 0}
-  .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-  .lab{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-right:2px}
-  button.chip{font:inherit;font-size:13px;padding:6px 11px;border:1.5px solid var(--line);border-radius:999px;background:transparent;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-  button.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
-  button.chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-  .tot{margin-left:auto;font-size:14px;color:var(--ink-2)}.tot b{color:var(--ink)}
-  main{flex:1;min-height:0;position:relative}
-  #map{position:absolute;inset:0;background:#dfe6e3}
-  #msg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:1000;background:var(--bg);color:var(--ink-2)}
-  .note{padding:7px 16px;font-size:12px;color:var(--ink-2);background:var(--surface);border-top:1px solid var(--line)}
-  .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(11,107,102,.25)}
-  .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{background:rgba(11,107,102,.85);color:#fff;font-weight:700}
-  .pop b{font-size:14px}.pop div{font-size:13px;color:#444;margin-top:2px}
-  .embed .back,.embed h1{display:none}
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1f2933}
+#app{display:flex;height:100%}
+#side{width:340px;max-width:42vw;display:flex;flex-direction:column;border-right:1px solid #d9dee3;background:#fff}
+#head{padding:14px 16px;border-bottom:1px solid #e6eaee}
+h1{font-size:17px;margin:0 0 2px}.sub{font-size:12px;color:#66727f}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stat{background:#f4f6f8;border-radius:8px;padding:8px 10px}.stat b{display:block;font-size:18px}.stat span{font-size:11px;color:#66727f}
+.filters{padding:10px 16px;border-bottom:1px solid #e6eaee;font-size:13px}
+.filters label{display:flex;align-items:center;gap:8px;margin:5px 0;cursor:pointer}
+.chip{border:1px solid #c5ccd3;border-radius:14px;padding:3px 11px;font-size:12px;cursor:pointer;background:#fff;user-select:none}.chip.on{background:#1f2933;color:#fff;border-color:#1f2933}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;border:2px solid #fff;box-shadow:0 0 0 1px #0003}
+#list{overflow:auto;flex:1}
+.row{padding:8px 16px;border-bottom:1px solid #f0f2f4;cursor:pointer;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.row:hover{background:#f7f9fb}.row .a{font-weight:600}.row .m{color:#66727f;font-size:12px}
+#map{flex:1;background:#e9eef2}
+.pop b{font-size:14px}.pop table{border-collapse:collapse;margin-top:6px;font-size:12px}.pop td{padding:2px 8px 2px 0;vertical-align:top}.pop td:first-child{color:#66727f}
+.tag{display:inline-block;padding:1px 7px;border-radius:10px;color:#fff;font-size:11px;margin-left:6px}
+.note{position:absolute;z-index:500;right:10px;bottom:10px;background:#fffd;border-radius:6px;padding:4px 8px;font-size:11px;color:#55616d}
+.ref{background:none;border:none;font-size:11px;color:#6b7785;font-style:italic;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff}
+.back{display:inline-block;font-size:12px;color:#66727f;text-decoration:none;margin-bottom:6px}.back:hover{color:#0B6B66;text-decoration:underline}
+.embed .back{display:none}
+#msg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:1000;background:#fff;color:#55616d}
 </style>
 <script>if(/[?&]embed=1/.test(location.search))document.documentElement.className+=' embed'</script>
-</head>
-<body>
-<header>
-  <a class="back" href="index.html#s11">&larr; Home Buyer Guide</a>
-  <h1>Homes we have sold and bought</h1>
-  <div class="grp" id="sides" role="group" aria-label="Type of transaction"></div>
-  <div class="grp" id="years" role="group" aria-label="Year"></div>
-  <div class="tot" id="tot" aria-live="polite"></div>
-</header>
-<main><div id="map" aria-label="Map of homes we have sold and bought"></div><div id="msg"></div></main>
-<div class="note">Pins show the approximate location of each home, not the exact address. Prices and addresses are not shown. Map data &copy; OpenStreetMap contributors.</div>
-
+</head><body>
+<div id="app">
+<div id="side">
+ <div id="head"><a class="back" href="index.html#s11">&larr; Home Buyer Guide</a><h1>Sales Map — Monica Thapar</h1><div class="sub">Snobar Realty Group Inc. · Toronto MLS · <span id="yrs"></span></div>
+  <div class="stats"><div class="stat"><b id="sN"></b><span>homes sold or bought</span></div><div class="stat"><b id="sV"></b><span>total volume</span></div>
+  <div class="stat"><b id="sA"></b><span>average sold price</span></div><div class="stat"><b id="sD"></b><span>average days on market</span></div></div></div>
+ <div class="filters"><div id="years" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px"></div>
+  <label><input type="checkbox" id="fSeller" checked><span class="dot" style="background:#1f9d55"></span><span>Represented the <b>seller</b> (<span id="cS"></span>)</span></label>
+  <label><input type="checkbox" id="fBuyer" checked><span class="dot" style="background:#e8710a"></span><span>Represented the <b>buyer</b> (<span id="cB"></span>)</span></label>
+ </div>
+ <div id="list"></div>
+</div>
+<div id="map"></div>
+<div id="msg" role="status"></div>
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="vendor/leaflet/leaflet.markercluster.js"></script>
 <script>
-(function(){
-  var SIDES={L:{label:'Sold for the seller',color:'var(--sold)',hex:'#0B6B66'},S:{label:'Bought for the buyer',color:'var(--bought)',hex:'#B2601A'},B:{label:'Both sides',color:'var(--both)',hex:'#6741D9'}};
-  var $=function(id){return document.getElementById(id)};
-  var TYPES={'Att-Row-Twnhouse':'Row townhouse','Condo Apt':'Condo apartment','Co-Ownership Apt':'Co-ownership apartment','Condo Townhouse':'Condo townhouse','Link':'Link home'};
-  var all=[],selSides={L:true,S:true,B:true},selYears=null,years=[],map,cluster;
-  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-  function msg(t){var m=$('msg');m.textContent=t;m.style.display='flex'}
-
-  function init(){
-    map=L.map('map',{zoomControl:true}).setView([43.68,-79.52],11);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
-    cluster=L.markerClusterGroup({showCoverageOnHover:false,maxClusterRadius:45,spiderfyOnMaxZoom:true}).addTo(map);
-  }
-  function buildControls(){
-    $('sides').innerHTML='<span class="lab">Type</span>'+Object.keys(SIDES).map(function(k){
-      return '<button type="button" class="chip" data-side="'+k+'" aria-pressed="true"><span class="dot" style="background:'+SIDES[k].hex+'"></span>'+SIDES[k].label+'</button>'}).join('');
-    $('years').innerHTML='<span class="lab">Year</span><button type="button" class="chip" data-year="all" aria-pressed="true">All</button>'+
-      years.map(function(y){return '<button type="button" class="chip" data-year="'+y+'" aria-pressed="false">'+y+'</button>'}).join('');
-  }
-  function draw(){
-    cluster.clearLayers();
-    var n=0,c={L:0,S:0,B:0},pts=[];
-    all.forEach(function(r){
-      if(!selSides[r.s]) return;
-      if(selYears&&!selYears[r.y]) return;
-      n++;c[r.s]++;
-      var m=L.circleMarker([r.lat,r.lng],{radius:8,color:'#fff',weight:2,fillColor:SIDES[r.s].hex,fillOpacity:.95});
-      m.bindPopup('<div class="pop"><b>'+esc(SIDES[r.s].label)+'</b><div>'+esc(r.y)+' &middot; '+esc(TYPES[r.t]||r.t||'Home')+'</div><div>'+esc(r.c||'')+'</div></div>');
-      cluster.addLayer(m);pts.push([r.lat,r.lng]);
-    });
-    $('tot').innerHTML='<b>'+n.toLocaleString('en-CA')+'</b> '+(n===1?'home':'homes')+(years.length?' &middot; '+years[0]+' to '+years[years.length-1]:'');
-    if(pts.length) map.fitBounds(L.latLngBounds(pts),{padding:[30,30],maxZoom:14});
-  }
-  document.addEventListener('click',function(e){
-    var s=e.target.closest('[data-side]'),y=e.target.closest('[data-year]');
-    if(s){var k=s.dataset.side;selSides[k]=!selSides[k];s.setAttribute('aria-pressed',String(selSides[k]));draw()}
-    else if(y){
-      var v=y.dataset.year,btns=document.querySelectorAll('[data-year]');
-      if(v==='all'){selYears=null}
-      else{selYears=selYears||{};selYears[v]=!selYears[v];if(!Object.keys(selYears).some(function(k){return selYears[k]}))selYears=null}
-      btns.forEach(function(b){var on=b.dataset.year==='all'?!selYears:!!(selYears&&selYears[b.dataset.year]);b.setAttribute('aria-pressed',String(on))});
-      draw();
-    }
-  });
-
-  init();
-  fetch('data/sales.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('missing');return r.json()}).then(function(d){
-    all=(d.records||[]).filter(function(r){return isFinite(r.lat)&&isFinite(r.lng)});
-    if(!all.length){msg('The map is being updated. Please check back soon.');return}
-    years=Array.from(new Set(all.map(function(r){return r.y}))).sort();
-    buildControls();draw();
-  }).catch(function(){msg('The map is being updated. Please check back soon.')});
-})();
+fetch('data/sales.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('missing');return r.json()}).then(function(d){
+const D=d.records||[];
+if(!D.length)throw new Error('empty');
+const COL={Seller:'#1f9d55',Buyer:'#e8710a'};
+const fmt=n=>'$'+Math.round(n).toLocaleString('en-CA');
+const map=L.map('map',{zoomControl:true,preferCanvas:true}).setView([43.69,-79.55],12);
+// Street tiles load where the page is allowed to fetch images (e.g. opened as a file); blocked silently in sandboxed viewers.
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
+// Reference landmarks so the map reads without a basemap
+[['Kipling Stn',43.6371,-79.5360],['Islington Stn',43.6456,-79.5246],['Royal York Stn',43.6481,-79.5113],['Union Station',43.6453,-79.3806],['Lake Ontario ↓',43.600,-79.52]].forEach(([n,a,b])=>
+ L.marker([a,b],{icon:L.divIcon({className:'ref',html:n,iconSize:null}),interactive:false}).addTo(map));
+const YEARS=[...new Set(D.map(o=>o.year))].sort();
+const activeYears=new Set(YEARS);
+const sideOn={Seller:true,Buyer:true};
+yrs.textContent=YEARS.join(', ');
+const markers={};
+D.forEach(o=>{
+ const m=L.circleMarker([o.lat,o.lng],{radius:8,color:'#fff',weight:2,fillColor:COL[o.side],fillOpacity:.95});
+ m.bindPopup(`<div class="pop"><b>${o.addr}</b><span class="tag" style="background:${COL[o.side]}">${o.side==='Seller'?'Repped seller':'Repped buyer'}</span><div style="font-size:12px;color:#66727f">${o.city} ${o.zip} · ${o.type}</div>
+ <table><tr><td>Sold price</td><td><b>${fmt(o.price)}</b></td></tr><tr><td>Sold date</td><td>${o.date}</td></tr>
+ <tr><td>Sold / asked</td><td>${(o.ratio*100).toFixed(1)}%</td></tr><tr><td>Days on market</td><td>${o.dom}</td></tr>
+ <tr><td>MLS#</td><td>${o.mls}</td></tr><tr><td>${o.side==='Seller'?'Buyer’s agent':'Seller’s agent'}</td><td>${o.other||'—'}</td></tr></table>${o.approx?'<div style="color:#b45309;font-size:11px;margin-top:4px">Approximate location: exact address not found, placed on its street or nearest town</div>':''}</div>`);
+ markers[o.id]=m;
+});
+const list=document.getElementById('list');
+const rows={};
+D.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(o=>{
+ const r=document.createElement('div');r.className='row';
+ r.innerHTML=`<span class="dot" style="background:${COL[o.side]};margin-top:3px"></span><div><div class="a">${o.addr}</div><div class="m">${o.city} · ${o.type} · ${fmt(o.price)} · ${o.date}</div></div>`;
+ r.onclick=()=>{map.setView([o.lat,o.lng],Math.max(map.getZoom(),15));markers[o.id].openPopup()};
+ list.appendChild(r);rows[o.id]=r;
+});
+const visible=o=>activeYears.has(o.year)&&sideOn[o.side];
+function refresh(){
+ const on=D.filter(visible);
+ D.forEach(o=>{const v=visible(o);v?markers[o.id].addTo(map):map.removeLayer(markers[o.id]);rows[o.id].style.display=v?'':'none'});
+ const v=on.reduce((s,o)=>s+o.price,0);
+ sN.textContent=on.length;sV.textContent=on.length?'$'+(v/1e6).toFixed(1)+'M':'—';
+ sA.textContent=on.length?fmt(v/on.length):'—';sD.textContent=on.length?Math.round(on.reduce((s,o)=>s+o.dom,0)/on.length):'—';
+ const yo=D.filter(o=>activeYears.has(o.year));
+ cS.textContent=yo.filter(o=>o.side==='Seller').length;cB.textContent=yo.filter(o=>o.side==='Buyer').length;
+}
+function fit(){const p=D.filter(o=>visible(o)&&o.city==='Toronto').map(o=>[o.lat,o.lng]);if(p.length)map.fitBounds(L.latLngBounds(p).pad(.1))}
+YEARS.forEach(y=>{const c=document.createElement('span');c.className='chip on';c.textContent=y+' ('+D.filter(o=>o.year===y).length+')';
+ c.onclick=()=>{activeYears.has(y)?activeYears.delete(y):activeYears.add(y);c.classList.toggle('on');refresh();fit()};years.appendChild(c)});
+['Seller','Buyer'].forEach(s=>document.getElementById('f'+s).onchange=e=>{sideOn[s]=e.target.checked;refresh()});
+refresh();fit();
+}).catch(function(){var m=document.getElementById('msg');m.textContent='The map is being updated. Please check back soon.';m.style.display='flex'});
 </script>
-</body>
-</html>
+</body></html>

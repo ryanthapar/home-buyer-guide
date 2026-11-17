@@ -9,8 +9,9 @@ Static site for GitHub Pages. No build step.
 | `school-boundaries.html` | TDSB / TCDSB boundary viewer (Leaflet + OpenStreetMap, data embedded, no key). About 7 MB, so the guide only loads it when someone opens the School boundaries tab. |
 | `config.js` | Where the Google Maps API key goes. |
 | `our-sales.html` | Map of homes we have sold and bought (Leaflet + OpenStreetMap, no key). Reads `data/sales.json`. Shown in part 12. |
-| `tools/build-sales.html` | Private, unlinked tool that turns MLS exports into `data/sales.json`. |
-| `vendor/` | Self-hosted Leaflet, marker clustering and SheetJS (no CDN). |
+| `data/sales.json` | The sales records and their coordinates. |
+| `tools/extract_sales.py` | Rebuilds `data/sales.json` from an updated sales map file. |
+| `vendor/` | Self-hosted Leaflet (no CDN). |
 
 ## Add the Google Maps API key
 1. In Google Cloud, create a key and enable **Maps JavaScript API**, **Places API (New)**, **Geocoding API** and **Maps Static API** (billing must be on).
@@ -21,11 +22,12 @@ Static site for GitHub Pages. No build step.
 If `config.js` is left blank, the map page asks the visitor for a key and stores it in their browser only.
 
 ## Updating the sales map
-1. Open `https://<user>.github.io/home-buyer-guide/tools/build-sales.html` (it has to be opened from the site so the Google key's website restriction allows it).
-2. Choose the MLS exports (`.xlsx`), press **Read files**, then **Look up locations**, then **Download sales.json**.
-3. Put the file at `data/sales.json` and push. Leave "Add to the map data already on the site" ticked to add new years without redoing old ones.
+The map reads `data/sales.json`, which holds the coordinates already worked out for each sale. Nothing is geocoded and no Google service is used.
+1. Get the updated sales map HTML file (the one with the `const D=[...]` data in it).
+2. Run `python3 tools/extract_sales.py path/to/thapar_sales_map.html`. It rewrites `data/sales.json` and prints the record count and year range.
+3. Commit and push.
 
-Privacy: the exports are read in the browser and never uploaded. `sales.json` keeps only a pin rounded to about 100 m, the year, property type, city and type of transaction (sold for seller, bought for buyer, or both sides). No street addresses, prices, MLS numbers or agent names. Do not commit the raw exports (`.gitignore` blocks `.xlsx` and `.csv`). Lookups that Google can only place approximately are listed in the tool and left off the map.
+`data/sales.json` includes each sale's street address, price, MLS number and the other side's agent. That is shown in the map's popups and list. If you would rather not publish those, remove the fields from the file and the popup before pushing.
 
 ## Publish
 Repo **Settings → Pages → Deploy from a branch**, pick the branch and `/ (root)`.
