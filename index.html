@@ -51,6 +51,26 @@ h2[tabindex="-1"]:focus{outline:none}
 .top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 0;flex-wrap:wrap}
 .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.01em}
 .brand small{font:500 12px var(--text);color:var(--ink-2);margin-left:10px;letter-spacing:.06em;text-transform:uppercase}
+.brandbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.tocbtn,.tocfab{font:600 14px var(--text);display:inline-flex;align-items:center;gap:8px;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer}
+.tocbtn:hover,.tocfab:hover{border-color:var(--ink)}
+.tocfab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:40;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.tocico{width:16px;height:12px;display:inline-block;background:linear-gradient(currentColor 0 0) 0 0/100% 2px,linear-gradient(currentColor 0 0) 0 5px/100% 2px,linear-gradient(currentColor 0 0) 0 10px/100% 2px;background-repeat:no-repeat}
+dialog#toc{width:min(520px,calc(100vw - 24px));max-height:min(82vh,740px);padding:0;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);overflow:hidden}
+dialog#toc[open]{display:flex;flex-direction:column}
+dialog#toc::backdrop{background:rgba(8,20,17,.55)}
+.tochead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 20px 0}
+.tochead h2{font-size:24px}
+.tocx{font:400 26px/1 var(--text);background:none;border:0;color:var(--ink-2);cursor:pointer;padding:0 4px}
+.tocintro{padding:6px 20px 0;color:var(--ink-2);font-size:14px}
+.tocacts{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 20px}
+#tocCount{margin-left:auto;font-size:13px;color:var(--ink-2)}
+#tocList{list-style:none;margin:0;padding:0 20px;overflow:auto;flex:1;border-top:1px solid var(--line)}
+.tocrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.tocrow label{display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;font-weight:500}
+.tocrow input{width:18px;height:18px;accent-color:var(--accent);flex:none}
+.tocrow.off label span{color:var(--ink-2);text-decoration:line-through}
+.tocfoot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end}
 .tabs{display:flex;gap:6px;flex-wrap:wrap}
 .tab{font:600 14px var(--text);background:transparent;color:var(--ink-2);border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer}
 .tab[aria-current="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -235,7 +255,8 @@ summary{cursor:pointer;font-weight:600;font-size:15px}
 
 <div class="wrap">
   <div class="top">
-    <div class="brand">Home Buyer Guide<small>The Thapar Team</small></div>
+    <div class="brandbar"><div class="brand">Home Buyer Guide<small>The Thapar Team</small></div>
+      <button type="button" class="tocbtn" id="tocBtn" aria-haspopup="dialog" aria-controls="toc"><span class="tocico" aria-hidden="true"></span>Contents</button></div>
     <nav class="tabs" aria-label="Guide sections">
       <button class="tab" type="button" data-go="s1" aria-current="true">1 · Your situation</button>
       <button class="tab" type="button" data-go="sr" id="tabr">2 · Buying process</button>
@@ -449,8 +470,22 @@ summary{cursor:pointer;font-weight:600;font-size:15px}
     </script>
   </section>
 
+  <div class="card" id="tocEmpty" hidden style="margin-top:32px"><h3 style="font-size:20px;margin:0 0 6px">Every section is hidden</h3>
+    <p class="hint" style="margin:0 0 12px">Open the contents to choose which sections to show.</p>
+    <button type="button" class="btn small" data-toc-open>Choose what to show</button></div>
+
   <div class="card" id="foot" style="margin-top:48px"></div>
 </div>
+
+<button type="button" class="tocfab" id="tocFab" aria-haspopup="dialog" aria-controls="toc"><span class="tocico" aria-hidden="true"></span>Contents</button>
+
+<dialog id="toc" aria-labelledby="tocH">
+  <div class="tochead"><h2 id="tocH">Contents</h2><button type="button" class="tocx" data-toc-close aria-label="Close contents">&times;</button></div>
+  <p class="tocintro">Tick the parts you want on the page. Parts you untick are hidden until you tick them again. Your choice is saved in this browser.</p>
+  <div class="tocacts"><button type="button" class="btn ghost small" data-toc-all="1">Show all</button><button type="button" class="btn ghost small" data-toc-all="0">Hide all</button><span id="tocCount" aria-live="polite"></span></div>
+  <ul id="tocList"></ul>
+  <div class="tocfoot"><button type="button" class="btn" data-toc-close>Done</button></div>
+</dialog>
 
 <script>
 (function(){
@@ -594,7 +629,15 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const num=s=>{const v=parseFloat(String(s).replace(/[^0-9.]/g,''));return isFinite(v)?v:0};
 const r5=n=>Math.round(n/5000)*5000;
 const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-function scrollToEl(el){el.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})}
+/* If the target section is hidden (see Contents), go to the next visible section instead. */
+function visibleTarget(el){
+  const sec=el.closest?el.closest('.wrap > section'):null;
+  if(!sec||!sec.hidden) return el;
+  let n=sec.nextElementSibling;
+  while(n&&n.hidden) n=n.nextElementSibling;
+  return n||document.getElementById('foot');
+}
+function scrollToEl(el){visibleTarget(el).scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})}
 
 /* ---------- Intake state ---------- */
 const STEPS=['Buyer','Purpose','Down payment','Pre-approval','Current home','Search','Viewings','Timing','Areas'];
@@ -1878,9 +1921,61 @@ if('IntersectionObserver' in window){
   const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){tabs.forEach(t=>t.setAttribute('aria-current',String(t.dataset.go===en.target.id)))}})},{rootMargin:'-35% 0px -55% 0px'});
   io.observe($('#s1')); io.observe($('#sr')); io.observe($('#s2')); io.observe($('#s3')); io.observe($('#s4')); io.observe($('#s5')); io.observe($('#s6')); io.observe($('#s7')); io.observe($('#s8')); io.observe($('#s9')); io.observe($('#s10')); io.observe($('#s11'));
   window.addEventListener('scroll',()=>{
-    if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4) tabs.forEach(t=>t.setAttribute('aria-current',String(t.dataset.go==='s11')));
+    if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4){
+      const vis=Array.prototype.filter.call(tabs,t=>!t.hidden), last=vis[vis.length-1];
+      tabs.forEach(t=>t.setAttribute('aria-current',String(t===last)));
+    }
   },{passive:true});
 }
+
+/* ---------- Contents: choose which sections are shown ---------- */
+const TOC_KEY='hbg-toc';
+const tocDlg=$('#toc');
+let tocHidden=[]; try{const v=JSON.parse(localStorage.getItem(TOC_KEY)||'[]'); if(Array.isArray(v)) tocHidden=v}catch(e){}
+const tocSecs=()=>Array.prototype.slice.call(document.querySelectorAll('.wrap > section'));
+const tocTab=id=>document.querySelector('.tab[data-go="'+id+'"]');
+function tocSave(){try{localStorage.setItem(TOC_KEY,JSON.stringify(tocHidden))}catch(e){}}
+function tocApply(){
+  const secs=tocSecs();
+  secs.forEach(s=>{const h=tocHidden.indexOf(s.id)>-1; s.hidden=h; const t=tocTab(s.id); if(t) t.hidden=h});
+  const n=secs.filter(s=>!s.hidden).length;
+  $('#tocEmpty').hidden=n>0;
+  $('#tocCount').textContent=n+' of '+secs.length+' shown';
+}
+function tocBuild(){
+  $('#tocList').innerHTML=tocSecs().map(s=>{
+    const t=tocTab(s.id), on=tocHidden.indexOf(s.id)<0, label=t?t.textContent.trim():s.id;
+    return `<li class="tocrow${on?'':' off'}"><label><input type="checkbox" data-toc="${s.id}"${on?' checked':''}><span>${esc(label)}</span></label><button type="button" class="btn ghost small" data-toc-go="${s.id}"${on?'':' disabled'}>Go</button></li>`;
+  }).join('');
+  tocApply();
+}
+function tocOpen(){
+  tocBuild();
+  if(typeof tocDlg.showModal==='function') tocDlg.showModal(); else tocDlg.setAttribute('open','');
+}
+function tocClose(){ if(typeof tocDlg.close==='function') tocDlg.close(); else tocDlg.removeAttribute('open') }
+$('#tocBtn').addEventListener('click',tocOpen);
+$('#tocFab').addEventListener('click',tocOpen);
+tocDlg.addEventListener('click',e=>{
+  if(e.target===tocDlg){tocClose();return}
+  const c=e.target.closest('[data-toc-close]'); if(c){tocClose();return}
+  const a=e.target.closest('[data-toc-all]');
+  if(a){tocHidden=a.dataset.tocAll==='1'?[]:tocSecs().map(s=>s.id); tocSave(); tocBuild(); return}
+  const g=e.target.closest('[data-toc-go]');
+  if(g&&!g.disabled){tocClose(); const el=$('#'+g.dataset.tocGo); if(el) scrollToEl(el)}
+});
+tocDlg.addEventListener('change',e=>{
+  const id=e.target.dataset&&e.target.dataset.toc; if(!id) return;
+  const i=tocHidden.indexOf(id);
+  if(e.target.checked){if(i>-1) tocHidden.splice(i,1)} else if(i<0) tocHidden.push(id);
+  tocSave(); tocApply();
+  const row=e.target.closest('.tocrow'); row.classList.toggle('off',!e.target.checked);
+  const go=row.querySelector('[data-toc-go]'); if(go) go.disabled=!e.target.checked;
+});
+document.addEventListener('click',e=>{if(e.target.closest('[data-toc-open]')) tocOpen()});
+/* A link straight to a hidden section (for example from the map pages) shows it. */
+(function(){const h=location.hash.slice(1); const i=tocHidden.indexOf(h); if(h&&i>-1){tocHidden.splice(i,1); tocSave()}})();
+tocApply();
 
 $('#skipAll').addEventListener('click',()=>{ if(!S.done) submit(); else scrollToEl($('#sr')) });
 document.addEventListener('click',e=>{const b=e.target.closest('[data-skip]'); if(b) scrollToEl($('#'+b.dataset.skip))});
